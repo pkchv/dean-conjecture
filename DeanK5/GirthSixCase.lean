@@ -1,6 +1,6 @@
 import DeanK5.FourCycleExclusion
 import DeanK5.FinalResidue
-import DeanK5.ClassicalGraphTheory
+import DeanK5.MengerTwo
 import DeanK5.SubdivisionK4
 import DeanK5.ThetaResidue
 import DeanK5.ThetaCore

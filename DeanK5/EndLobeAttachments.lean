@@ -1,4 +1,4 @@
-import DeanK5.ClassicalGraphTheory
+import DeanK5.EndLobeExistence
 
 /-!
 # Root attachments to end lobes

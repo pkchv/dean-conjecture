@@ -166,8 +166,8 @@ noncomputable def standingSetupOfTwoConnected
 Every finite two-connected graph of minimum degree at least five contains a
 cycle whose length is divisible by five.
 -/
-theorem divisible_cycle_of_two_connected_min_degree_five_internal
-    [Fintype V] [DecidableEq V]
+theorem divisible_cycle_of_two_connected_min_degree_five
+    [Fintype V]
     (G : SimpleGraph V)
     (hconnected : IsTwoConnected G)
     (hdegree : MinDegreeAtLeast G 5) :

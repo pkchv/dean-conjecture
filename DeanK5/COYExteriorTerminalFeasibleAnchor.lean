@@ -37,10 +37,6 @@ structure ExteriorTerminalFeasibleAnchor
     (hregion : P.working.rooted.otherRegion ≠ {y}) where
   /-- The selected block index. -/
   index : Fin (O.chain.cutCount + 1)
-  /-- The selected index is the maximum feasible index. -/
-  index_eq_lastFeasible :
-    index =
-      O.toCandidateChain.lastFeasibleIndex M hregion
   /-- This is the branch in which the selected index is terminal. -/
   index_eq_cutCount :
     index.1 = O.chain.cutCount
@@ -50,32 +46,6 @@ structure ExteriorTerminalFeasibleAnchor
   block_eq_last :
     choice.block =
       O.chain.blocks O.lastIndex
-  /-- The anchor is the exterior copy of `y`. -/
-  anchor_eq_y :
-    choice.anchor.b = P.exteriorY
-  /-- The second special vertex is the final cut. -/
-  zPrime_eq_finalCut :
-    choice.anchor.zPrime =
-      O.chain.cuts
-        ⟨O.chain.cutCount - 1, by
-          have := O.chain.one_le_cutCount
-          omega⟩
-  /-- The fixed anchor-to-`y` connector is the length-zero path. -/
-  pathToTarget_length_eq_zero :
-    choice.anchor.pathToTarget.walk.length = 0
-  /-- The anchor and final cut are exactly the special block vertices. -/
-  special_eq_pair :
-    choice.block.carrier ∩
-        (cutVertices P.exteriorGraph ∪
-          P.exteriorProtected) =
-      {P.exteriorY,
-        (O.chain.cuts
-          ⟨O.chain.cutCount - 1, by
-            have := O.chain.one_le_cutCount
-            omega⟩).1}
-  /-- Claim 3.12(1) for the terminal source-oriented block. -/
-  terminalAttachments_eq_empty :
-    choice.terminalAttachments = ∅
   /--
   Terminal equation (3.4): no working-core `T`-vertex is adjacent to a
   selected-block vertex other than `y`.
@@ -84,42 +54,6 @@ structure ExteriorTerminalFeasibleAnchor
     ∀ t ∈ P.working.rooted.core.T,
       ∀ d ∈ choice.ambientCarrier,
         d ≠ y → ¬G.Adj t d
-
-namespace ExteriorTerminalFeasibleAnchor
-
-variable
-  {M : MinimalCounterexample q G x y z}
-  {P : PreferredWorkingCoreData G x y z}
-  {O : P.ExteriorOrderedBlockChain}
-  {hregion : P.working.rooted.otherRegion ≠ {y}}
-
-/-- The terminal anchor, viewed as an ambient vertex, is `y`. -/
-theorem b_eq_y
-    (L : P.ExteriorTerminalFeasibleAnchor M O hregion) :
-    L.choice.b = y := by
-  exact congrArg Subtype.val L.anchor_eq_y
-
-/-- The second special vertex, viewed in the ambient graph, is the final cut. -/
-theorem zPrime_eq_finalCut_ambient
-    (L : P.ExteriorTerminalFeasibleAnchor M O hregion) :
-    L.choice.zPrime =
-      (O.chain.cuts
-        ⟨O.chain.cutCount - 1, by
-          have := O.chain.one_le_cutCount
-          omega⟩).1.1 := by
-  exact congrArg Subtype.val L.zPrime_eq_finalCut
-
-/-- The ambient anchor-to-`y` connector has length zero. -/
-theorem pathToY_length_eq_zero
-    (L : P.ExteriorTerminalFeasibleAnchor M O hregion) :
-    L.choice.pathToY.walk.length = 0 := by
-  change
-    (L.choice.anchor.pathToTarget.walk.map
-      P.exteriorEmbedding.toHom).length = 0
-  rw [SimpleGraph.Walk.length_map]
-  exact L.pathToTarget_length_eq_zero
-
-end ExteriorTerminalFeasibleAnchor
 
 namespace ExteriorOrderedBlockChain
 
@@ -287,24 +221,13 @@ noncomputable def terminalFeasibleAnchor
     C.terminalAttachments_eq_empty M
   refine {
     index := p
-    index_eq_lastFeasible := rfl
     index_eq_cutCount := by
       simpa [p] using hterminal
     choice := C
     block_eq_last := by
       rfl
-    anchor_eq_y := by
-      rfl
-    zPrime_eq_finalCut := by
-      rfl
-    pathToTarget_length_eq_zero := by
-      rfl
-    special_eq_pair := ?_
-    terminalAttachments_eq_empty := hattachments
     equation_three_four := ?_
   }
-  · simpa [C, B, finalCutIndex, special] using
-      hspecialEq.symm
   · intro t ht d hd hdNeY hadj
     have hdNeB :
         d ≠ C.b := by

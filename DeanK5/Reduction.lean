@@ -1,17 +1,17 @@
-import DeanK5.GirthSixCase
 import DeanK5.TwoConnectedCase
 import DeanK5.Structural
-import DeanK5.ClassicalGraphTheory
+import DeanK5.Graph.Connectivity
 import DeanK5.EndLobeAttachments
 import DeanK5.GHLMRootedInternal
 
 /-!
-# Rooted end-block reduction and completion (paper Sections 3 and 8)
+# Rooted end-block reduction (paper Section 3)
 
-This file completes the paper's Section 3 reduction and performs the final
-assembly in Section 8.  The ordinary connected-component and end-block facts
-are proved in `ClassicalGraphTheory`; the degree bookkeeping,
+This file completes the paper's Section 3 reduction.  The ordinary
+connectivity and end-block facts are proved in `Graph.Connectivity`,
+`EndLobeExistence`, and `EndLobeAttachments`; the degree bookkeeping,
 root-deletion argument, and construction of `StandingSetup` are internal.
+The short final assembly is isolated in `FinalDeduction`.
 -/
 
 open SimpleGraph
@@ -81,7 +81,7 @@ theorem root_degree_upper
     · omega
     · exact R.old_degree_lower w
   exact R.no_divisible_cycle
-    (divisible_cycle_of_two_connected_min_degree_five_internal
+    (divisible_cycle_of_two_connected_min_degree_five
       B R.block_two_connected hdegree)
 
 /-- The deficient set injects into the root neighborhood. -/
@@ -450,12 +450,11 @@ theorem root_deletion_two_connected
 /-- A divisible cycle of `J` would map injectively into `B`. -/
 theorem no_divisible_cycle_deleted
     (R : RootedBlockSetup J B c) :
-    ¬ HasCycleDivisibleBy J 5 := by
-  rintro ⟨C, hC⟩
-  apply R.no_divisible_cycle
-  refine ⟨C.mapInjectiveHom
-      R.inclusion.toHom R.inclusion.injective, ?_⟩
-  simpa using hC
+    ¬ HasCycleDivisibleBy J 5 :=
+  fun hcycle =>
+    R.no_divisible_cycle
+      (hcycle.mapInjectiveHom
+        R.inclusion.toHom R.inclusion.injective)
 
 /--
 The complete Section 3 construction of the standing setup.  In particular,
@@ -496,14 +495,6 @@ noncomputable def toStandingSetup
     three_connected := hJthree
     no_divisible_cycle := R.no_divisible_cycle
   }
-
-/--
-All of Sections 3--7 assembled for an extracted rooted end block.
--/
-theorem contradiction
-    (R : RootedBlockSetup J B c) :
-    False :=
-  R.toStandingSetup.girth_six_case_contradiction
 
 end RootedBlockSetup
 
@@ -626,88 +617,16 @@ noncomputable def toRootedBlockSetup
     have hlower := hdegree w.1
     omega
   · simpa [innerSet] using L.inner_connected
-  · rintro ⟨C, hC⟩
-    apply hno
+  · intro hcycle
     let f : L.blockGraph →g G := {
       toFun := fun z => z.1
       map_rel' := by
         intro x y hxy
         exact hxy
     }
-    have hf : Function.Injective f := by
-      intro x y hxy
-      exact Subtype.ext hxy
-    refine ⟨C.mapInjectiveHom
-        f hf, ?_⟩
-    simpa using hC
+    exact hno
+      (hcycle.mapInjectiveHom f Subtype.val_injective)
 
 end EndLobe
-
-/-- The internally proved two-connected minimum-degree-five case. -/
-theorem divisible_cycle_of_two_connected_min_degree_five
-    {X : Type*} [Fintype X] [DecidableEq X]
-    (G : SimpleGraph X)
-    (hconnected : IsTwoConnected G)
-    (hdegree : MinDegreeAtLeast G 5) :
-    HasCycleDivisibleBy G 5 :=
-  divisible_cycle_of_two_connected_min_degree_five_internal
-    G hconnected hdegree
-
-/--
-The paper's final theorem.
-
-`Nonempty X` is explicit because the pointwise predicate
-`MinDegreeAtLeast G 5` is vacuously true on an empty carrier.  This is the
-formal counterpart of the conventional graph-theoretic assumption that a
-graph with a stated minimum degree has a vertex.
--/
-theorem dean_conjecture_k5
-    {X : Type*} [Fintype X]
-    [Nonempty X]
-    (G : SimpleGraph X)
-    (hdegree : MinDegreeAtLeast G 5) :
-    HasCycleDivisibleBy G 5 := by
-  classical
-  by_contra hno
-  let x : X := Classical.choice (inferInstance : Nonempty X)
-  let C : G.ConnectedComponent :=
-    G.connectedComponentMk x
-  letI : Fintype C := Fintype.ofFinite C
-  letI : DecidableEq C := Classical.decEq C
-  let H := C.toSimpleGraph
-  have hHdegree : MinDegreeAtLeast H 5 := by
-    intro w
-    have hinside :
-        ∀ y, G.Adj w.1 y → y ∈ C.supp := by
-      intro y hwy
-      exact C.mem_supp_of_adj_mem_supp
-        w.2 hwy
-    have hle :=
-      finiteDegree_le_induce G C.supp
-        w hinside
-    exact (hdegree w.1).trans hle
-  have hHno : ¬ HasCycleDivisibleBy H 5 := by
-    rintro ⟨K, hK⟩
-    apply hno
-    refine ⟨K.mapInjectiveHom
-        C.toSimpleGraph_hom
-        (by
-          intro a b hab
-          exact Subtype.ext hab), ?_⟩
-    simpa using hK
-  by_cases hHtwo : IsTwoConnected H
-  · exact hHno
-      (divisible_cycle_of_two_connected_min_degree_five
-        H hHtwo hHdegree)
-  · have hHthree : MinDegreeAtLeast H 3 := by
-      intro w
-      exact (hHdegree w).trans' (by omega)
-    obtain ⟨P⟩ :=
-      ClassicalGraphTheory.two_end_lobes
-        H C.connected_toSimpleGraph
-        hHtwo hHthree
-    let R :=
-      P.left.toRootedBlockSetup hHdegree hHno
-    exact R.contradiction
 
 end DeanK5

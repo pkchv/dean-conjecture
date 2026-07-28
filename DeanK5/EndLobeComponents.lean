@@ -1,4 +1,4 @@
-import DeanK5.ClassicalGraphTheory
+import DeanK5.EndLobeExistence
 import DeanK5.Graph.Connectivity
 import DeanK5.Graph.Separation
 

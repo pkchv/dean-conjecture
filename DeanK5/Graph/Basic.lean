@@ -359,6 +359,19 @@ def HasCycleLength (G : SimpleGraph V) (n : ℕ) : Prop :=
 def HasCycleDivisibleBy (G : SimpleGraph V) (k : ℕ) : Prop :=
   ∃ C : SimpleCycle G, C.length % k = 0
 
+namespace HasCycleDivisibleBy
+
+/-- Transport a divisible cycle along an injective graph homomorphism. -/
+theorem mapInjectiveHom
+    {G : SimpleGraph V} {H : SimpleGraph W} {k : ℕ}
+    (hcycle : HasCycleDivisibleBy G k)
+    (f : G →g H) (hinjective : Function.Injective f) :
+    HasCycleDivisibleBy H k := by
+  rcases hcycle with ⟨C, hC⟩
+  exact ⟨C.mapInjectiveHom f hinjective, by simpa using hC⟩
+
+end HasCycleDivisibleBy
+
 /-- The degree of a vertex in a graph on a finite carrier. -/
 @[nolint unusedArguments]
 noncomputable def finiteDegree [Fintype V] (G : SimpleGraph V) (v : V) : ℕ :=
