@@ -1,4 +1,4 @@
-import DeanK5.Published
+import DeanK5.Graph.Basic
 import Mathlib.Combinatorics.SimpleGraph.Metric
 
 /-!

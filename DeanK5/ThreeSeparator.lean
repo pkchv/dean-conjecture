@@ -1,5 +1,5 @@
 import DeanK5.Graph.Separation
-import DeanK5.RootLifting
+import DeanK5.Graph.RootAdjunction
 
 /-!
 # From 3-connectivity to 4-connectivity (paper Section 4)

@@ -7,7 +7,7 @@ import Mathlib.Combinatorics.SimpleGraph.Paths
 import Mathlib.Tactic
 
 /-!
-# Graph-theoretic vocabulary for the conditional formalization
+# Graph-theoretic vocabulary for the formalization
 
 The paper uses paths and cycles in the strict graph-theoretic sense.
 Accordingly, `SimplePath` stores Mathlib's `Walk.IsPath`, and `SimpleCycle`
@@ -585,6 +585,26 @@ def IsCompleteGraphOfOrder (G : SimpleGraph V) (n : ℕ) : Prop :=
 /-- `G` is a complete bipartite graph with the specified part sizes. -/
 def IsCompleteBipartiteOfParts (G : SimpleGraph V) (s t : ℕ) : Prop :=
   Nonempty (G ≃g completeBipartiteGraph (Fin s) (Fin t))
+
+/--
+The exact finite-graph model of either `K_{s,t}` or `K_{s,t}` with one
+cross-edge deleted.
+-/
+def IsCompleteBipartiteMinusAtMostOne
+    [Fintype V] [DecidableEq V]
+    (G : SimpleGraph V) (S T : Finset V) : Prop :=
+  Disjoint S T ∧ S ∪ T = Finset.univ ∧
+    2 ≤ min S.card T.card ∧
+    ∃ missing : Option (V × V),
+      (∀ p, missing = some p → p.1 ∈ S ∧ p.2 ∈ T) ∧
+      (missing.isSome → 3 ≤ max S.card T.card) ∧
+      ∀ u v,
+        G.Adj u v ↔
+          ((u ∈ S ∧ v ∈ T) ∨ (u ∈ T ∧ v ∈ S)) ∧
+          match missing with
+          | none => True
+          | some p => ¬((u = p.1 ∧ v = p.2) ∨
+            (u = p.2 ∧ v = p.1))
 
 /--
 The low-level concatenation certificate used by paper Lemma 2.2.

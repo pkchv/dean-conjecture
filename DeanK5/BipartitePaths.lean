@@ -1,13 +1,12 @@
-import DeanK5.Published
+import DeanK5.Graph.Basic
 import Mathlib.Data.Fin.Tuple.Embedding
 import Mathlib.Data.Fintype.EquivFin
 
 /-!
 # Paths in complete bipartite cores
 
-This module proves the elementary alternating-path input used in the
-four-cycle argument.  It is deliberately separate from `Published`: no
-published theorem is trusted for these constructions.
+This module proves internally the elementary alternating-path input used in
+the four-cycle argument.
 -/
 
 open Function

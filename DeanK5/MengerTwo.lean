@@ -7,7 +7,7 @@ import Mathlib.Combinatorics.SimpleGraph.DeleteEdges
 This file proves only the finite `k = 2` set version needed by the paper.
 The proof is by induction under edge deletion and contraction.  Keeping the
 result this specialized avoids importing a general flow or path-packing
-development into the formal trust boundary.
+development into the dependency footprint.
 -/
 
 open scoped Sym2

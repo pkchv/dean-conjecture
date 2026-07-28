@@ -1100,6 +1100,7 @@ theorem StandingSetup.endLobe_admissible_paths
   have result : RootLiftResult G Z x y 3 := by
     apply root_lifting 3 G Z Z x y
     · omega
+    · omega
     · exact hxy
     · exact hnotadj
     · exact hconn
@@ -1260,7 +1261,7 @@ theorem StandingSetup.heavy_endLobe_admissible_paths
           exact hElower
   obtain ⟨F⟩ :=
     GHLM.rooted_admissible_paths_internal
-      3 G rC rB (by omega) hrne hconn hdeg
+      3 G rC rB (by omega) (by omega) hrne hconn hdeg
   let φ : K →g B :=
     adjoinRootHom E DZ
       (L.blockHom setup T) c
@@ -2769,6 +2770,7 @@ theorem StandingSetup.component_admissible_paths
   have result : RootLiftResult G Z x y 3 := by
     apply root_lifting 3 G Z Z x y
     · omega
+    · omega
     · exact hxy
     · exact hnotadj
     · exact hconn
@@ -2912,7 +2914,7 @@ theorem StandingSetup.heavy_component_admissible_paths
           exact hElower
   obtain ⟨F⟩ :=
     GHLM.rooted_admissible_paths_internal
-      3 G rC rY (by omega) hrne hconn hdeg
+      3 G rC rY (by omega) (by omega) hrne hconn hdeg
   let φ : K →g B :=
     adjoinRootHom E DZ
       (OutsideComponent.hom setup T C) c
@@ -4258,6 +4260,7 @@ theorem StandingSetup.outside_envelope_admissible_paths
   have result :
       RootLiftResult A Z x' y' 3 := by
     apply root_lifting 3 A DM Z x' y'
+    · omega
     · omega
     · exact hroots
     · exact hnotadj

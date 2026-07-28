@@ -649,9 +649,9 @@ private theorem exists_strict_subregion
 
 /--
 An interior-cardinality-minimal lobe region inside a fixed initial side has
-a 2-connected closure.
+a 2-connected closure once that closure has at least three vertices.
 -/
-private theorem minimal_within_block_two_connected
+theorem minimal_within_block_two_connected_of_three_le_card
     [Fintype V] [DecidableEq V]
     {G : SimpleGraph V}
     (L₀ L : LobeRegion G)
@@ -660,13 +660,13 @@ private theorem minimal_within_block_two_connected
       ∀ K : LobeRegion G,
         K.Within L₀.inner L₀.cut →
           L.inner.card ≤ K.inner.card)
-    (hdegree : MinDegreeAtLeast G 3) :
+    (horder : 3 ≤ Fintype.card (↑L.carrier : Set V)) :
     IsTwoConnected L.blockGraph := by
   by_contra hnotTwo
   obtain ⟨e, C₀, C₁, hC₀C₁⟩ :=
     exists_cut_with_two_components
       L.blockGraph L.block_connected hnotTwo
-      (L.three_le_card_block hdegree)
+      horder
   obtain ⟨C, D, hCD, hold⟩ :=
     exists_component_avoiding_old_cut
       L e C₀ C₁ hC₀C₁
@@ -684,6 +684,24 @@ private theorem minimal_within_block_two_connected
         (Or.inr (hwithin.1 hKinner))
   exact (Nat.not_le_of_gt hsmaller)
     (hminimal K hKwithin₀)
+
+/--
+The minimum-degree wrapper used by the ordinary two-end-lobe theorem.
+-/
+private theorem minimal_within_block_two_connected
+    [Fintype V] [DecidableEq V]
+    {G : SimpleGraph V}
+    (L₀ L : LobeRegion G)
+    (hwithin : L.Within L₀.inner L₀.cut)
+    (hminimal :
+      ∀ K : LobeRegion G,
+        K.Within L₀.inner L₀.cut →
+          L.inner.card ≤ K.inner.card)
+    (hdegree : MinDegreeAtLeast G 3) :
+    IsTwoConnected L.blockGraph :=
+  minimal_within_block_two_connected_of_three_le_card
+    L₀ L hwithin hminimal
+    (L.three_le_card_block hdegree)
 
 /--
 The standard two-end-lobe consequence is proved by choosing two components

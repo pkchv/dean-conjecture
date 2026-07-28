@@ -5,10 +5,10 @@ import DeanK5.GHLMRootedInternal
 /-!
 # The `k = 5` connectivity step from BGLP Lemma 2.3
 
-This file proves the exact specialization used by the paper.  It remains
-conditional only on the rooted admissible-path theorem: the minimum-cut
-argument, degree preservation, ambient transport, support disjointness, and
-cycle closure are internal.
+This file proves the exact specialization used by the paper.  It invokes the
+internally proved rooted admissible-path theorem; the minimum-cut argument,
+degree preservation, ambient transport, support disjointness, and cycle
+closure are proved here.
 -/
 
 open SimpleGraph
@@ -68,7 +68,7 @@ private theorem component_three_admissible_paths
             G Q x y z.1 hQ hzQ)
   obtain ⟨F⟩ :=
     GHLM.rooted_admissible_paths_internal
-      3 A rx ry (by omega) hroots hAconn hAdeg
+      3 A rx ry (by omega) (by omega) hroots hAconn hAdeg
   let f := twoRootComponentBaseHom G Q x y
   have hf : Function.Injective f :=
     twoRootComponentBaseHom_injective G Q x y

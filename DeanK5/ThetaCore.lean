@@ -4,9 +4,9 @@ import Mathlib.Combinatorics.SimpleGraph.Connectivity.Subgraph
 /-!
 # Intrinsic properties of theta graphs
 
-This file removes ordinary theta-graph facts from the external trust
-boundary.  It first controls degrees in an induced theta by embedding its
-neighbor set into the disjoint union of the three path-neighbor sets.
+This file proves ordinary theta-graph facts internally.  It first controls
+degrees in an induced theta by embedding its neighbor set into the disjoint
+union of the three path-neighbor sets.
 -/
 
 open SimpleGraph

@@ -478,7 +478,7 @@ theorem no_k4minus
     omega
   have lifted : RootLiftResult A Z rx ry 3 :=
     root_lifting 3 A DU Z rx ry
-      (by omega) hroots hnotadj (hAedge ▸ hA₀two)
+      (by omega) (by omega) hroots hnotadj (hAedge ▸ hA₀two)
       hZDU hxZ hyZ hdeg hdegZ (fun _ => horderA)
   let φ : A →g B := {
     toFun w := setup.inclusion w.1
@@ -1387,15 +1387,19 @@ theorem triangle_contraction_admissible_paths
               · rw [if_neg hwZ, add_zero]
                 exact hwdegree
   have result :=
-    COY.one_exception_rooted_paths 4 L rp rt none
-      (by omega) horder hroots (hLedge ▸ hHtwo) hdeg
+    COY.one_exception_rooted_paths_internal 4 L rp rt none
+      (by omega) (by omega) horder hroots
+      (by simp [rp, triangleContractP])
+      (by simp [rt, triangleContractT])
+      (hLedge ▸ hHtwo) hdeg
   simpa [L, rp, rt] using result
 
 /--
 The triangle-contraction path family when the deficient set is empty.
-In this case every old vertex already has degree at least five, so COY can
-be applied before adjoining the ambient bookkeeping root.  The resulting
-paths are then embedded into the usual rooted contraction base.
+In this case every old vertex already has degree at least five, so the
+bounded GHLM fragment applies before adjoining the ambient bookkeeping
+root.  The resulting paths are then embedded into the usual rooted
+contraction base.
 -/
 theorem triangle_contraction_admissible_paths_no_deficient
     (setup : StandingSetup J B c D)
@@ -1443,9 +1447,6 @@ theorem triangle_contraction_admissible_paths_no_deficient
       by_cases hedge : (edge rp rt).Adj a b
       · exact Or.inr hedge
       · exact Or.inl ⟨hab, hedge⟩
-  have horder :
-      4 ≤ Fintype.card (ContractPairVertex W T.q T.r) := by
-    exact hCthree.1
   have hdeg :
       ∀ z, z ≠ rp → z ≠ rt →
         4 + 1 ≤ finiteDegree L z := by
@@ -1481,10 +1482,9 @@ theorem triangle_contraction_admissible_paths_no_deficient
         rw [hLdegree, hCdegree]
         exact setup.degree_regular w.1 (by simp [hD])
   obtain ⟨paths⟩ :=
-    COY.one_exception_rooted_paths
-      4 L rp rt rp
-      (by omega) horder hroots (hLedge ▸ hCtwo)
-      (fun z hzrp hzrt _ => hdeg z hzrp hzrt)
+    GHLM.rooted_admissible_paths_internal
+      4 L rp rt (by omega) (by omega) hroots
+      (hLedge ▸ hCtwo) hdeg
   let paths' : AdmissiblePathFamily
       (triangleContractionBaseNoRoot J T.p T.q T.r)
       rp rt 4 := by
@@ -1503,8 +1503,8 @@ theorem triangle_contraction_admissible_paths_no_deficient
       triangleContractP, triangleContractT] using mapped⟩
 
 /--
-Lemma 5.2: the standing graph has no triangle.  All path production is
-conditional only on the named COY axiom; contraction, degree preservation,
+Lemma 5.2: the standing graph has no triangle.  All path production uses the
+internally proved bounded COY theorem; contraction, degree preservation,
 path lifting, simplicity of the two closures, and the modular contradiction
 are proved internally.
 -/

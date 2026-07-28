@@ -208,7 +208,7 @@ theorem endLobe_rooted_paths
     exact hEdegree
   obtain ⟨F⟩ :=
     GHLM.rooted_admissible_paths_internal
-      3 A xE bE (by omega) hroots
+      3 A xE bE (by omega) (by omega) hroots
       hconn hdegree
   let f : A →g B := {
     toFun := fun z => R.inclusion z.1

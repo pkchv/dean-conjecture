@@ -1,12 +1,11 @@
-import DeanK5.Published
 import DeanK5.EndLobeExistence
+import DeanK5.Graph.Connectivity
 import DeanK5.MengerTwo
 
 /-!
 # Classical finite graph theory
 
-This module isolates the ordinary finite-graph facts used by the paper from
-the theorems quoted from GHLM, COY, and BGLP.
+This module collects the ordinary finite-graph facts used by the paper.
 -/
 
 open scoped Sym2
@@ -20,62 +19,6 @@ universe u
 variable {V : Type u}
 
 namespace ClassicalGraphTheory
-
-/--
-Every vertex of a finite `k`-connected graph has degree at least `k`.
-This is the elementary separator consequence used in the initial
-end-block reduction.
--/
-theorem degree_at_least_connectivity
-    [Fintype V] [DecidableEq V]
-    (G : SimpleGraph V) (k : ℕ)
-    (hconnected : IsKConnected G k) :
-    MinDegreeAtLeast G k := by
-  classical
-  intro v
-  by_contra hdegree
-  have hlt : finiteDegree G v < k :=
-    Nat.lt_of_not_ge hdegree
-  let S : Finset V := (G.neighborSet v).toFinset
-  have hSlt : S.card < k := by
-    change (G.neighborSet v).toFinset.card < k
-    rw [← Set.ncard_eq_toFinset_card']
-    change (G.neighborSet v).ncard < k at hlt
-    exact hlt
-  let T : Finset V := insert v S
-  have hTcard : T.card < (Finset.univ : Finset V).card := by
-    have hinsert := Finset.card_insert_le v S
-    have horder := hconnected.1
-    change T.card < Fintype.card V
-    dsimp only [T]
-    omega
-  obtain ⟨w, -, hwT⟩ :=
-    Finset.exists_mem_notMem_of_card_lt_card hTcard
-  have hvS : v ∉ S := by
-    simp [S]
-  have hwS : w ∉ S := by
-    intro hw
-    exact hwT (Finset.mem_insert_of_mem hw)
-  have hvw : v ≠ w := by
-    intro hvw
-    subst w
-    exact hwT (Finset.mem_insert_self _ _)
-  let vS : {x : V // x ∉ S} := ⟨v, hvS⟩
-  let wS : {x : V // x ∉ S} := ⟨w, hwS⟩
-  have hvwS : vS ≠ wS := by
-    intro h
-    exact hvw (congrArg Subtype.val h)
-  have hreach :
-      (G.induce {x : V | x ∉ S}).Reachable vS wS :=
-    (hconnected.2 S hSlt) vS wS
-  have hsupport :
-      vS ∈ (G.induce {x : V | x ∉ S}).support :=
-    SimpleGraph.mem_support_of_reachable hvwS hreach
-  obtain ⟨z, hvz⟩ :=
-    (G.induce {x : V | x ∉ S}).mem_support.mp hsupport
-  apply z.2
-  change G.Adj v z.1 at hvz
-  simpa [S, SimpleGraph.mem_neighborSet] using hvz
 
 /-- Finite degree is invariant under a graph isomorphism. -/
 theorem finiteDegree_iso

@@ -12,6 +12,7 @@ graph.
 -/
 
 open SimpleGraph
+open scoped Sym2
 
 namespace DeanK5
 
@@ -240,6 +241,29 @@ theorem isKConnected_deleteVertices
   · rintro ⟨hvS, hvC⟩
     exact ⟨⟨v, hvS⟩, hvC, rfl⟩
 
+/-- Distinct deletion components have disjoint original-carrier vertex sets. -/
+theorem componentVertices_disjoint_of_ne
+    [Fintype V] [DecidableEq V]
+    (G : SimpleGraph V) (S : Finset V)
+    {C D : (deleteVertices G S).ConnectedComponent}
+    (hCD : C ≠ D) :
+    Disjoint (componentVertices G S C)
+      (componentVertices G S D) := by
+  apply Finset.disjoint_left.mpr
+  intro v hvC hvD
+  obtain ⟨hvS, hvCsupp⟩ :=
+    (mem_componentVertices_iff G S C v).1 hvC
+  obtain ⟨hvS', hvDsupp⟩ :=
+    (mem_componentVertices_iff G S D v).1 hvD
+  have hsubtype :
+      (⟨v, hvS⟩ : {w : V // w ∉ S}) =
+        ⟨v, hvS'⟩ := by
+    rfl
+  exact Set.disjoint_left.mp
+    (SimpleGraph.pairwise_disjoint_supp_connectedComponent
+      (deleteVertices G S) hCD)
+    hvCsupp (hsubtype ▸ hvDsupp)
+
 /-- Every actual connected component after deletion yields a component region. -/
 theorem componentRegion_componentVertices
     [Fintype V] [DecidableEq V]
@@ -328,6 +352,82 @@ theorem IsVertexCut.exists_other_component
       exact hne (h.trans h'.symm)⟩
   · exact ⟨C₀, h⟩
 
+/--
+Failure of 2-connectivity in a connected graph of order at least three is
+witnessed by one vertex whose deletion has two distinct connected
+components.
+-/
+theorem exists_cut_with_two_components
+    [Fintype V] [DecidableEq V]
+    (G : SimpleGraph V)
+    (hconnected : G.Connected)
+    (hnotTwo : ¬IsTwoConnected G)
+    (horder : 3 ≤ Fintype.card V) :
+    ∃ c : V,
+      ∃ C₀ C₁ : (deleteVertices G {c}).ConnectedComponent,
+        C₀ ≠ C₁ := by
+  classical
+  have hnotDeletion :
+      ¬∀ S : Finset V, S.card < 2 →
+        (G.induce {v : V | v ∉ S}).Connected := by
+    intro h
+    exact hnotTwo ⟨horder, h⟩
+  push Not at hnotDeletion
+  obtain ⟨S, hScard, hSnot⟩ := hnotDeletion
+  have hSnonempty : S.Nonempty := by
+    by_contra hS
+    have hSempty : S = ∅ :=
+      Finset.not_nonempty_iff_eq_empty.mp hS
+    subst S
+    apply hSnot
+    have hInduced :
+        (G.induce (Set.univ : Set V)).Connected :=
+      (SimpleGraph.Iso.connected_iff
+        (SimpleGraph.induceUnivIso G)).mpr hconnected
+    have hset :
+        {v : V | v ∉ (∅ : Finset V)} =
+          (Set.univ : Set V) := by
+      ext z
+      simp
+    rw [hset]
+    exact hInduced
+  have hScardOne : S.card = 1 := by
+    have hpos := Finset.card_pos.mpr hSnonempty
+    omega
+  obtain ⟨c, rfl⟩ :=
+    Finset.card_eq_one.mp hScardOne
+  let M := deleteVertices G {c}
+  have hMnonempty :
+      Nonempty {v : V // v ∉ ({c} : Finset V)} := by
+    have hproper :
+        ({c} : Finset V).card <
+          (Finset.univ : Finset V).card := by
+      simp only [Finset.card_singleton,
+        Finset.card_univ]
+      omega
+    obtain ⟨z, -, hz⟩ :=
+      Finset.exists_mem_notMem_of_card_lt_card hproper
+    exact ⟨⟨z, hz⟩⟩
+  letI : Nonempty {v : V // v ∉ ({c} : Finset V)} :=
+    hMnonempty
+  have hMnotPreconnected : ¬M.Preconnected := by
+    intro hpre
+    exact hSnot {
+      preconnected := hpre
+      nonempty := hMnonempty
+    }
+  unfold SimpleGraph.Preconnected at hMnotPreconnected
+  push Not at hMnotPreconnected
+  obtain ⟨a, b, hab⟩ := hMnotPreconnected
+  let C₀ : M.ConnectedComponent :=
+    M.connectedComponentMk a
+  let C₁ : M.ConnectedComponent :=
+    M.connectedComponentMk b
+  refine ⟨c, C₀, C₁, ?_⟩
+  intro hEq
+  exact hab
+    (SimpleGraph.ConnectedComponent.exact hEq)
+
 namespace ComponentRegion
 
 variable [DecidableEq V] {G : SimpleGraph V} {S Q : Finset V}
@@ -405,6 +505,84 @@ theorem exists_boundary_edge_of_walk
             exact hbQ (hQ.closed ha hab hbnotS)
           exact ⟨a, ha, by simp, b, hbS, by simp, hab⟩
   exact go hq p
+
+/--
+The first boundary edge of a walk can also be retained as an explicit
+member of the walk's edge list.
+-/
+theorem exists_boundary_edge_mem_edges_of_walk
+    (hQ : ComponentRegion G S Q)
+    {q t : V} (hq : q ∈ Q) (ht : t ∈ S)
+    (p : G.Walk q t) :
+    ∃ u ∈ Q, ∃ s ∈ S,
+      s(u, s) ∈ p.edges ∧ G.Adj u s := by
+  let rec go {a : V} (ha : a ∈ Q)
+      (p : G.Walk a t) :
+      ∃ u ∈ Q, ∃ s ∈ S,
+        s(u, s) ∈ p.edges ∧ G.Adj u s := by
+    cases p with
+    | nil =>
+        exact False.elim
+          (Finset.disjoint_left.mp hQ.disjoint ha ht)
+    | cons hab p =>
+        rename_i b
+        by_cases hbQ : b ∈ Q
+        · obtain ⟨u, huQ, s, hsS, husEdge, hus⟩ :=
+            go hbQ p
+          exact ⟨u, huQ, s, hsS, by
+            simp [husEdge], hus⟩
+        · have hbS : b ∈ S := by
+            by_contra hbnotS
+            exact hbQ (hQ.closed ha hab hbnotS)
+          exact ⟨a, ha, b, hbS, by simp, hab⟩
+  exact go hq p
+
+/--
+Putting a deleted cut vertex back beside one of its component regions
+produces a connected induced graph.  Only connectedness of the ambient
+graph is needed.
+-/
+theorem connected_insert_singleton_of_connected
+    [Fintype V]
+    (hQ : ComponentRegion G {c} Q)
+    (hconn : G.Connected) :
+    (G.induce (↑(insert c Q) : Set V)).Connected := by
+  obtain ⟨q, hqQ⟩ := hQ.nonempty
+  have hqc : q ≠ c := by
+    intro h
+    exact hQ.not_mem_separator hqQ (by simp [h])
+  obtain ⟨p⟩ := hconn.preconnected q c
+  obtain ⟨a, haQ, -, s, hs, -, has⟩ :=
+    hQ.exists_boundary_edge_of_walk hqQ (by simp) p
+  have hsc : s = c := by
+    simpa using hs
+  subst s
+  let f :
+      G.induce (↑Q : Set V) →g
+        G.induce (↑(insert c Q) : Set V) := {
+    toFun v := ⟨v.1, by simp [v.2]⟩
+    map_rel' := by
+      intro u v huv
+      exact huv
+  }
+  let aU : (↑(insert c Q) : Set V) :=
+    ⟨a, by simp [haQ]⟩
+  let cU : (↑(insert c Q) : Set V) :=
+    ⟨c, by simp⟩
+  have hacU :
+      (G.induce (↑(insert c Q) : Set V)).Adj aU cU :=
+    has
+  rw [connected_iff_exists_forall_reachable]
+  refine ⟨aU, ?_⟩
+  rintro ⟨v, hvU⟩
+  have hvClass : v = c ∨ v ∈ Q := by
+    simpa using hvU
+  rcases hvClass with rfl | hvQ
+  · exact hacU.reachable
+  · let vQ : (↑Q : Set V) := ⟨v, hvQ⟩
+    let aQ : (↑Q : Set V) := ⟨a, haQ⟩
+    have hreach := (hQ.connected.preconnected aQ vQ).map f
+    simpa [aU, aQ, vQ, f] using hreach
 
 /--
 In a 2-connected graph, a component outside `S` has an attachment avoiding
@@ -594,6 +772,206 @@ theorem endpoint_mem_of_walk_avoiding_separator
       apply ih hbQ
       intro v hv
       exact havoid v (by simp [hv])
+
+/--
+Adding one edge whose endpoints lie on the same side of a component
+region cannot let a separator-avoiding walk leave that region.
+-/
+theorem endpoint_mem_of_sup_edge_walk
+    (hQ : ComponentRegion G S Q)
+    {x y q r : V} (hqQ : q ∈ Q)
+    (p : (G ⊔ edge x y).Walk q r)
+    (havoid : ∀ v ∈ p.support, v ∉ S)
+    (hsame : x ∈ Q ↔ y ∈ Q) :
+    r ∈ Q := by
+  induction p with
+  | nil =>
+      exact hqQ
+  | @cons a b c hab p ih =>
+      have hbS : b ∉ S := by
+        apply havoid b
+        simp
+      have hbQ : b ∈ Q := by
+        rcases hab with hab | hab
+        · exact hQ.closed hqQ hab hbS
+        · simp only [SimpleGraph.edge_adj] at hab
+          rcases hab with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
+          · exact hsame.mp hqQ
+          · exact hsame.mpr hqQ
+      apply ih hbQ
+      intro v hv
+      exact havoid v (by simp [hv])
+
+/--
+If adjoining `xy` makes a graph 2-connected, then two distinct
+components after deleting one vertex cannot place `x` and `y` on the
+same side.
+-/
+theorem roots_opposite_component_of_sup_edge_two_connected
+    [Fintype V]
+    (hconn : IsTwoConnected (G ⊔ edge x y))
+    (c : V)
+    (C D : (deleteVertices G {c}).ConnectedComponent)
+    (hCD : C ≠ D) :
+    ¬(x ∈ componentVertices G {c} C ↔
+      y ∈ componentVertices G {c} C) := by
+  let QC := componentVertices G {c} C
+  let QD := componentVertices G {c} D
+  have hQC : ComponentRegion G {c} QC :=
+    componentRegion_componentVertices G {c} C
+  have hQD : ComponentRegion G {c} QD :=
+    componentRegion_componentVertices G {c} D
+  have hdisjoint : Disjoint QC QD :=
+    componentVertices_disjoint_of_ne G {c} hCD
+  obtain ⟨a, haQC⟩ := hQC.nonempty
+  obtain ⟨b, hbQD⟩ := hQD.nonempty
+  have hbNotQC : b ∉ QC := by
+    intro hbQC
+    exact Finset.disjoint_left.mp hdisjoint hbQC hbQD
+  have hac : a ≠ c := by
+    intro h
+    apply hQC.not_mem_separator haQC
+    simp [h]
+  have hbc : b ≠ c := by
+    intro h
+    apply hQD.not_mem_separator hbQD
+    simp [h]
+  have hdeleted :=
+    hconn.2 ({c} : Finset V) (by simp)
+  let aD : {v : V // v ∉ ({c} : Finset V)} :=
+    ⟨a, by simpa using hac⟩
+  let bD : {v : V // v ∉ ({c} : Finset V)} :=
+    ⟨b, by simpa using hbc⟩
+  obtain ⟨p⟩ :=
+    hdeleted.preconnected aD bD
+  let pH : (G ⊔ edge x y).Walk a b :=
+    p.map (Embedding.induce
+      {v : V | v ∉ ({c} : Finset V)}).toHom
+  have havoid :
+      ∀ v ∈ pH.support, v ∉ ({c} : Finset V) := by
+    intro v hv
+    change v ∈
+      (p.map (Embedding.induce
+        {v : V | v ∉ ({c} : Finset V)}).toHom).support at hv
+    rw [SimpleGraph.Walk.support_map] at hv
+    obtain ⟨w, -, hwv⟩ := List.mem_map.mp hv
+    change w.1 = v at hwv
+    exact hwv ▸ w.2
+  intro hsame
+  exact hbNotQC
+    (hQC.endpoint_mem_of_sup_edge_walk
+      haQC pH havoid hsame)
+
+/--
+A connected non-2-connected graph whose root edge restores
+2-connectivity has a cut vertex separating the two roots.
+-/
+theorem exists_root_separating_cut_of_sup_edge_two_connected
+    [Fintype V]
+    (G : SimpleGraph V) (x y : V)
+    (hconnected : G.Connected)
+    (hnotTwo : ¬IsTwoConnected G)
+    (hsup : IsTwoConnected (G ⊔ edge x y))
+    (horder : 3 ≤ Fintype.card V) :
+    ∃ c : V,
+      ∃ Cx Cy : (deleteVertices G {c}).ConnectedComponent,
+        Cx ≠ Cy ∧
+        x ∈ componentVertices G {c} Cx ∧
+        y ∈ componentVertices G {c} Cy := by
+  obtain ⟨c, C₀, C₁, hC₀C₁⟩ :=
+    exists_cut_with_two_components
+      G hconnected hnotTwo horder
+  have hopposite₀ :=
+    roots_opposite_component_of_sup_edge_two_connected
+      hsup c C₀ C₁ hC₀C₁
+  have hopposite₁ :=
+    roots_opposite_component_of_sup_edge_two_connected
+      hsup c C₁ C₀ hC₀C₁.symm
+  let Q₀ := componentVertices G {c} C₀
+  let Q₁ := componentVertices G {c} C₁
+  have hdisjoint : Disjoint Q₀ Q₁ :=
+    componentVertices_disjoint_of_ne G {c} hC₀C₁
+  by_cases hx₀ : x ∈ Q₀
+  · have hy₀ : y ∉ Q₀ := by
+      intro hy₀
+      exact hopposite₀ ⟨fun _ => hy₀, fun _ => hx₀⟩
+    have hx₁ : x ∉ Q₁ := by
+      exact fun hx₁ =>
+        Finset.disjoint_left.mp hdisjoint hx₀ hx₁
+    have hy₁ : y ∈ Q₁ := by
+      by_contra hy₁
+      exact hopposite₁
+        ⟨fun h => False.elim (hx₁ h),
+          fun h => False.elim (hy₁ h)⟩
+    exact ⟨c, C₀, C₁, hC₀C₁, hx₀, hy₁⟩
+  · have hy₀ : y ∈ Q₀ := by
+      by_contra hy₀
+      exact hopposite₀
+        ⟨fun h => False.elim (hx₀ h),
+          fun h => False.elim (hy₀ h)⟩
+    have hy₁ : y ∉ Q₁ := by
+      exact fun hy₁ =>
+        Finset.disjoint_left.mp hdisjoint hy₀ hy₁
+    have hx₁ : x ∈ Q₁ := by
+      by_contra hx₁
+      exact hopposite₁
+        ⟨fun h => False.elim (hx₁ h),
+          fun h => False.elim (hy₁ h)⟩
+    exact ⟨c, C₁, C₀, hC₀C₁.symm, hx₁, hy₀⟩
+
+/--
+Once the root endpoints lie in two deletion components, those components
+exhaust all surviving vertices.
+-/
+theorem cut_components_exhaust_of_sup_edge_two_connected
+    [Fintype V]
+    (hsup : IsTwoConnected (G ⊔ edge x y))
+    (c : V)
+    (Cx Cy : (deleteVertices G {c}).ConnectedComponent)
+    (hx : x ∈ componentVertices G {c} Cx)
+    (hy : y ∈ componentVertices G {c} Cy)
+    (v : V) :
+    v = c ∨
+      v ∈ componentVertices G {c} Cx ∨
+      v ∈ componentVertices G {c} Cy := by
+  by_cases hvc : v = c
+  · exact Or.inl hvc
+  · right
+    have hvDeleted : v ∉ ({c} : Finset V) := by
+      simpa using hvc
+    let Cv :=
+      (deleteVertices G {c}).connectedComponentMk
+        (⟨v, hvDeleted⟩ :
+          {w : V // w ∉ ({c} : Finset V)})
+    have hvCv : v ∈ componentVertices G {c} Cv := by
+      apply (mem_componentVertices_iff G {c} Cv v).2
+      exact ⟨hvDeleted,
+        SimpleGraph.ConnectedComponent.connectedComponentMk_mem⟩
+    by_cases hCvx : Cv = Cx
+    · left
+      simpa [hCvx] using hvCv
+    by_cases hCvy : Cv = Cy
+    · right
+      simpa [hCvy] using hvCv
+    have hxNotCv :
+        x ∉ componentVertices G {c} Cv := by
+      intro hxCv
+      exact Finset.disjoint_left.mp
+        (componentVertices_disjoint_of_ne G {c} hCvx)
+        hxCv hx
+    have hyCv :
+        y ∈ componentVertices G {c} Cv := by
+      have hopposite :=
+        roots_opposite_component_of_sup_edge_two_connected
+          hsup c Cv Cx hCvx
+      by_contra hyNotCv
+      exact hopposite
+        ⟨fun h => False.elim (hxNotCv h),
+          fun h => False.elim (hyNotCv h)⟩
+    exact False.elim
+      (Finset.disjoint_left.mp
+        (componentVertices_disjoint_of_ne G {c} hCvy)
+        hyCv hy)
 
 /--
 If a component region has a surviving vertex on the far side of its

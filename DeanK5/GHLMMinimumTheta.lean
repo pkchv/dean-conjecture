@@ -22,8 +22,8 @@ universe u
 namespace GHLM
 
 /--
-GHLM Lemma 5.10, proved internally with the same hypotheses and conclusions
-as the former published-theorem dependency.
+GHLM Lemma 5.10, proved internally with the same hypotheses and conclusion as
+the source statement.
 -/
 theorem minimum_theta_structure_internal
     {V : Type u} [Fintype V] [DecidableEq V]

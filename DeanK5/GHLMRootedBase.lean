@@ -23,18 +23,17 @@ variable {V : Type u}
 namespace GHLM
 
 /--
-The `q = 1` specialization of GHLM's rooted admissible-path theorem.
+Two-connectivity after adjoining the root edge supplies an `x`--`y` path
+of length at least two in the original graph.
 
-The degree hypothesis is retained verbatim from the general statement,
-although two-connectivity of `G ⊔ edge x y` already suffices in this base
-case.
+This is the degree-free content of the `q = 1` rooted-path theorem and the
+base case needed by a source-faithful COY induction.
 -/
-theorem rooted_admissible_paths_one
+theorem rooted_admissible_paths_one_of_two_connected
     [Fintype V] [DecidableEq V]
     (G : SimpleGraph V) (x y : V)
     (hxy : x ≠ y)
-    (hconn : IsTwoConnected (G ⊔ edge x y))
-    (_hdeg : ∀ v, v ≠ x → v ≠ y → 2 ≤ finiteDegree G v) :
+    (hconn : IsTwoConnected (G ⊔ edge x y)) :
     Nonempty (AdmissiblePathFamily G x y 1) := by
   classical
   let H := G ⊔ edge x y
@@ -156,6 +155,39 @@ theorem rooted_admissible_paths_one
       simp
   }⟩
 
+/--
+The `q = 1` specialization of GHLM's rooted admissible-path theorem.
+Its degree hypothesis is retained for a statement-level comparison with
+the published theorem, but the proof uses only rooted two-connectivity.
+-/
+theorem rooted_admissible_paths_one
+    [Fintype V] [DecidableEq V]
+    (G : SimpleGraph V) (x y : V)
+    (hxy : x ≠ y)
+    (hconn : IsTwoConnected (G ⊔ edge x y))
+    (_hdeg : ∀ v, v ≠ x → v ≠ y → 2 ≤ finiteDegree G v) :
+    Nonempty (AdmissiblePathFamily G x y 1) :=
+  rooted_admissible_paths_one_of_two_connected G x y hxy hconn
+
 end GHLM
+
+namespace COY
+
+/--
+The `q = 1` case of COY's one-exception rooted theorem.  The exceptional
+vertex and all degree information are immaterial in this base case.
+-/
+theorem one_exception_rooted_paths_one
+    [Fintype V] [DecidableEq V]
+    (G : SimpleGraph V) (x y z : V)
+    (hxy : x ≠ y)
+    (hconn : IsTwoConnected (G ⊔ edge x y))
+    (_hdeg : ∀ v, v ≠ x → v ≠ y → v ≠ z →
+      2 ≤ finiteDegree G v) :
+    Nonempty (AdmissiblePathFamily G x y 1) :=
+  GHLM.rooted_admissible_paths_one_of_two_connected
+    G x y hxy hconn
+
+end COY
 
 end DeanK5

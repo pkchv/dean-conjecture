@@ -273,6 +273,7 @@ theorem separator_side_admissible_paths
   have lifted : RootLiftResult A DA rx ry 3 :=
     root_lifting 3 A DA DA rx ry
       (by omega)
+      (by omega)
       (by
         intro h
         exact hxy (congrArg Subtype.val h))
@@ -467,8 +468,11 @@ theorem separator_side_with_third_root_admissible_paths
           (finiteDegree_le_threeRootComponentBase_inner
             J Q x y z w.1 hQ hwQ)
   obtain ⟨F⟩ :=
-    COY.one_exception_rooted_paths 3 A rx ry none
-      (by omega) horder hroots hconn hdeg
+    COY.one_exception_rooted_paths_internal 3 A rx ry none
+      (by omega) (by omega) horder hroots
+      (by simp [rx, threeRootX])
+      (by simp [ry, threeRootY])
+      hconn hdeg
   let φ := setup.threeRootBaseHom Q x y z
   have hφ : Function.Injective φ :=
     setup.threeRootBaseHom_injective Q x y z hxz hyz hQ
