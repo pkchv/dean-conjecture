@@ -31,4 +31,5 @@ import DeanK5.ThetaOutsideChord
 import DeanK5.ThetaMinimumAttachment
 import DeanK5.GHLMMinimumTheta
 import DeanK5.GirthSixCase
+import DeanK5.TwoConnectedCase
 import DeanK5.Reduction

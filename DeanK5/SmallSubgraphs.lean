@@ -694,6 +694,34 @@ noncomputable def triangleContractionBase
   setup.triangleContractionGraph q r \
     edge (triangleContractP q r p) (triangleContractT q r)
 
+/--
+The contraction base before the ambient root is adjoined.  This is the
+appropriate auxiliary graph when no vertex is deficient.
+-/
+noncomputable def triangleContractionBaseNoRoot
+    (J : SimpleGraph W) (p q r : W) :
+    SimpleGraph (ContractPairVertex W q r) :=
+  contractPair J q r \
+    edge (contractVertex q r p) none
+
+/--
+Embed the deficiency-free contraction base into the usual rooted base.
+Its image consists of the old vertices, so none of its paths can use the
+ambient bookkeeping root.
+-/
+noncomputable def triangleContractionBaseNoRootEmbedding
+    (setup : StandingSetup J B c D) (p q r : W) :
+    triangleContractionBaseNoRoot J p q r ↪g
+      setup.triangleContractionBase p q r where
+  toFun := some
+  inj' := fun _ _ h => Option.some.inj h
+  map_rel_iff' := by
+    intro a b
+    simp [triangleContractionBaseNoRoot,
+      triangleContractionBase, triangleContractionGraph,
+      triangleContractP, triangleContractT,
+      SimpleGraph.edge_adj]
+
 /-- Map every non-contracted vertex of the auxiliary graph back to `B`. -/
 def triangleNonTVertex
     (setup : StandingSetup J B c D) (q r : W) :
@@ -1149,6 +1177,7 @@ neighbours of `c` exist by the standing lower degree bound.  If contracting
 -/
 theorem triangle_contraction_preserves_two_c_neighbors
     (setup : StandingSetup J B c D)
+    (hD : D.Nonempty)
     (T : TriangleConfig J) :
     ∃ T' : TriangleConfig J, ∃ u v : W,
       B.Adj c (setup.inclusion u) ∧
@@ -1157,7 +1186,7 @@ theorem triangle_contraction_preserves_two_c_neighbors
         contractVertex T'.q T'.r v := by
   have hneighborCard : 1 < (B.neighborSet c).ncard := by
     change 1 < finiteDegree B c
-    exact setup.degree_c_lower
+    exact setup.degree_c_lower hD
   obtain ⟨uB, huB, vB, hvB, huvB⟩ :=
     (Set.one_lt_ncard (s := B.neighborSet c)).1 hneighborCard
   have hcuB : B.Adj c uB :=
@@ -1363,6 +1392,117 @@ theorem triangle_contraction_admissible_paths
   simpa [L, rp, rt] using result
 
 /--
+The triangle-contraction path family when the deficient set is empty.
+In this case every old vertex already has degree at least five, so COY can
+be applied before adjoining the ambient bookkeeping root.  The resulting
+paths are then embedded into the usual rooted contraction base.
+-/
+theorem triangle_contraction_admissible_paths_no_deficient
+    (setup : StandingSetup J B c D)
+    (hD : D = ∅)
+    (T : TriangleConfig J) :
+    Nonempty (AdmissiblePathFamily
+      (setup.triangleContractionBase T.p T.q T.r)
+      (triangleContractP T.q T.r T.p)
+      (triangleContractT T.q T.r) 4) := by
+  let C := contractPair J T.q T.r
+  let rp := contractVertex T.q T.r T.p
+  let rt : ContractPairVertex W T.q T.r := none
+  let L := triangleContractionBaseNoRoot J T.p T.q T.r
+  have hCthree : IsKConnected C 3 :=
+    isThreeConnected_contractPair J T.q T.r
+      T.q_ne_r T.qr setup.four_connected
+  have hCtwo : IsTwoConnected C := by
+    constructor
+    · have := hCthree.1
+      omega
+    · intro S hS
+      exact hCthree.2 S (by omega)
+  have hpContract :
+      contractVertex T.q T.r T.p =
+        some ⟨T.p, T.p_ne_q, T.p_ne_r⟩ := by
+    simp [contractVertex, T.p_ne_q, T.p_ne_r]
+  have hrootAdjC : C.Adj rp rt := by
+    rw [show rp = contractVertex T.q T.r T.p by rfl,
+      show rt = none by rfl, hpContract]
+    exact Or.inl T.pq
+  have hroots : rp ≠ rt := by
+    simp [rp, rt, hpContract]
+  have hLedge : L ⊔ edge rp rt = C := by
+    ext a b
+    simp only [L, triangleContractionBaseNoRoot,
+      SimpleGraph.sup_adj, SimpleGraph.sdiff_adj]
+    constructor
+    · rintro (⟨hab, -⟩ | hab)
+      · exact hab
+      · simp only [SimpleGraph.edge_adj] at hab
+        rcases hab with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
+        · exact hrootAdjC
+        · exact hrootAdjC.symm
+    · intro hab
+      by_cases hedge : (edge rp rt).Adj a b
+      · exact Or.inr hedge
+      · exact Or.inl ⟨hab, hedge⟩
+  have horder :
+      4 ≤ Fintype.card (ContractPairVertex W T.q T.r) := by
+    exact hCthree.1
+  have hdeg :
+      ∀ z, z ≠ rp → z ≠ rt →
+        4 + 1 ≤ finiteDegree L z := by
+    intro z hzrp hzrt
+    cases z with
+    | none => exact False.elim (hzrt rfl)
+    | some w =>
+        have hwp : w.1 ≠ T.p := by
+          intro hwp
+          exact hzrp (by
+            rw [show rp = contractVertex T.q T.r T.p by rfl,
+              hpContract]
+            apply congrArg some
+            apply Subtype.ext
+            exact hwp)
+        have hwq : w.1 ≠ T.q := w.2.1
+        have hwr : w.1 ≠ T.r := w.2.2
+        have hone :
+            ¬(J.Adj w.1 T.q ∧ J.Adj w.1 T.r) := by
+          intro hboth
+          exact setup.triangle_external_vertex_at_most_one_neighbor
+            T w.1 hwp hwq hwr (Or.inr (Or.inl hboth))
+        have hCdegree :
+            finiteDegree C (some w) = finiteDegree J w.1 := by
+          simpa [C, contractVertex, hwq, hwr] using
+            finiteDegree_contractPair_eq
+              J T.q T.r w.1 hwq hwr hone
+        have hLdegree :
+            finiteDegree L (some w) =
+              finiteDegree C (some w) := by
+          exact finiteDegree_sdiff_edge_of_ne C rp rt
+            (some w) hzrp hzrt
+        rw [hLdegree, hCdegree]
+        exact setup.degree_regular w.1 (by simp [hD])
+  obtain ⟨paths⟩ :=
+    COY.one_exception_rooted_paths
+      4 L rp rt rp
+      (by omega) horder hroots (hLedge ▸ hCtwo)
+      (fun z hzrp hzrt _ => hdeg z hzrp hzrt)
+  let paths' : AdmissiblePathFamily
+      (triangleContractionBaseNoRoot J T.p T.q T.r)
+      rp rt 4 := by
+    simpa [L] using paths
+  let embedding :=
+    setup.triangleContractionBaseNoRootEmbedding
+      T.p T.q T.r
+  let mapped : AdmissiblePathFamily
+      (setup.triangleContractionBase T.p T.q T.r)
+      (embedding rp) (embedding rt) 4 :=
+    AdmissiblePathFamily.mapInjectiveHom
+      paths' embedding.toHom embedding.injective
+  exact ⟨by
+    simpa [mapped, embedding, rp, rt,
+      triangleContractionBaseNoRootEmbedding,
+      triangleContractP, triangleContractT] using mapped⟩
+
+/--
 Lemma 5.2: the standing graph has no triangle.  All path production is
 conditional only on the named COY axiom; contraction, degree preservation,
 path lifting, simplicity of the two closures, and the modular contradiction
@@ -1372,17 +1512,29 @@ theorem no_triangle
     (setup : StandingSetup J B c D) :
     ¬ Nonempty (TriangleConfig J) := by
   rintro ⟨T⟩
-  obtain ⟨T', u, v, hcu, hcv, huv⟩ :=
-    setup.triangle_contraction_preserves_two_c_neighbors T
-  obtain ⟨paths⟩ :=
-    setup.triangle_contraction_admissible_paths
-      T' u v hcu hcv huv
-  obtain ⟨grid⟩ :=
-    setup.triangle_lift_cycle_grid T' paths
-  exact setup.no_divisible_cycle
-    (four_paths_two_triangle_closures_force_divisible_cycle
-      (setup.triangleContractionBase T'.p T'.q T'.r)
-      B paths grid)
+  by_cases hD : D.Nonempty
+  · obtain ⟨T', u, v, hcu, hcv, huv⟩ :=
+      setup.triangle_contraction_preserves_two_c_neighbors hD T
+    obtain ⟨paths⟩ :=
+      setup.triangle_contraction_admissible_paths
+        T' u v hcu hcv huv
+    obtain ⟨grid⟩ :=
+      setup.triangle_lift_cycle_grid T' paths
+    exact setup.no_divisible_cycle
+      (four_paths_two_triangle_closures_force_divisible_cycle
+        (setup.triangleContractionBase T'.p T'.q T'.r)
+        B paths grid)
+  · have hDempty : D = ∅ :=
+      Finset.not_nonempty_iff_eq_empty.mp hD
+    obtain ⟨paths⟩ :=
+      setup.triangle_contraction_admissible_paths_no_deficient
+        hDempty T
+    obtain ⟨grid⟩ :=
+      setup.triangle_lift_cycle_grid T paths
+    exact setup.no_divisible_cycle
+      (four_paths_two_triangle_closures_force_divisible_cycle
+        (setup.triangleContractionBase T.p T.q T.r)
+        B paths grid)
 
 end StandingSetup
 

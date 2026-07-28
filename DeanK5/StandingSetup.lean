@@ -35,7 +35,12 @@ structure StandingSetup
   c_not_old : c ∉ Set.range inclusion
   vertex_decomposition :
     ∀ v : V, v = c ∨ v ∈ Set.range inclusion
-  degree_c_lower : 2 ≤ finiteDegree B c
+  /--
+  The ambient root has two neighbors whenever a deficient vertex is present.
+  The implication permits the deficiency-free specialization to use an
+  isolated bookkeeping root.
+  -/
+  degree_c_lower : D.Nonempty → 2 ≤ finiteDegree B c
   deficient_adjacent_to_c :
     ∀ d ∈ D, B.Adj c (inclusion d)
   degree_deficient :

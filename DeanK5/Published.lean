@@ -13,7 +13,6 @@ Sources:
 
 * COY: Chiba--Ota--Yamashita, J. Graph Theory 103 (2023), Theorem 3,
   as quoted in BGLP Theorem 2.2.
-* BGLP: Bai--Grzesik--Li--Prorok, JCTB 180 (2026), Theorem 1.3.
 -/
 
 open scoped Sym2
@@ -62,20 +61,5 @@ axiom one_exception_rooted_paths
     Nonempty (AdmissiblePathFamily G x y q)
 
 end COY
-
-namespace BGLP
-
-/-- BGLP Theorem 1.3. -/
-axiom two_connected_minimum_degree
-    [Fintype V] [DecidableEq V]
-    (k : ℕ) (G : SimpleGraph V)
-    (hk : 4 ≤ k)
-    (hconn : IsTwoConnected G)
-    (hdeg : MinDegreeAtLeast G k) :
-    Nonempty (AdmissibleCycleFamily G k) ∨
-      IsCompleteGraphOfOrder G (k + 1) ∨
-      IsCompleteBipartiteOfParts G k (Fintype.card V - k)
-
-end BGLP
 
 end DeanK5

@@ -1,4 +1,5 @@
 import DeanK5.GirthSixCase
+import DeanK5.TwoConnectedCase
 import DeanK5.Structural
 import DeanK5.ClassicalGraphTheory
 import DeanK5.EndLobeAttachments
@@ -66,10 +67,9 @@ noncomputable def deficient
   simp [deficient]
 
 /--
-The root degree is at most four.  If it were at least five, BGLP
-Theorem 1.3 applied to the end block would give either five admissible
-cycles or one of its two explicit exceptional graphs; all three contain
-a cycle of length divisible by five.
+The root degree is at most four.  If it were at least five, the internally
+proved two-connected minimum-degree-five case applied to the end block would
+give a cycle of length divisible by five.
 -/
 theorem root_degree_upper
     (R : RootedBlockSetup J B c) :
@@ -80,22 +80,9 @@ theorem root_degree_upper
     rcases R.vertex_decomposition z with rfl | ⟨w, rfl⟩
     · omega
     · exact R.old_degree_lower w
-  rcases BGLP.two_connected_minimum_degree
-      5 B (by omega) R.block_two_connected hdegree with
-    hfamilies | hK6 | hK5t
-  · obtain ⟨F⟩ := hfamilies
-    exact R.no_divisible_cycle
-      F.hasCycleDivisibleByFive
-  · obtain ⟨C, hC⟩ :=
-      ClassicalGraphTheory.complete_six_has_five_cycle
-        B hK6
-    apply R.no_divisible_cycle
-    exact ⟨C, by simp [hC]⟩
-  · obtain ⟨C, hC⟩ :=
-      ClassicalGraphTheory.complete_bipartite_five_has_ten_cycle
-        B (Fintype.card V - 5) hK5t hdegree
-    apply R.no_divisible_cycle
-    exact ⟨C, by simp [hC]⟩
+  exact R.no_divisible_cycle
+    (divisible_cycle_of_two_connected_min_degree_five_internal
+      B R.block_two_connected hdegree)
 
 /-- The deficient set injects into the root neighborhood. -/
 theorem deficient_card_le_root_degree
@@ -488,7 +475,7 @@ noncomputable def toStandingSetup
     inclusion := R.inclusion
     c_not_old := R.c_not_old
     vertex_decomposition := R.vertex_decomposition
-    degree_c_lower := R.root_degree_lower
+    degree_c_lower := fun _ => R.root_degree_lower
     deficient_adjacent_to_c := by
       intro d hd
       exact R.degree_four_adjacent_to_root d
@@ -656,28 +643,15 @@ noncomputable def toRootedBlockSetup
 
 end EndLobe
 
-/--
-The BGLP two-connected theorem, with both exceptional outcomes discharged.
--/
+/-- The internally proved two-connected minimum-degree-five case. -/
 theorem divisible_cycle_of_two_connected_min_degree_five
     {X : Type*} [Fintype X] [DecidableEq X]
     (G : SimpleGraph X)
     (hconnected : IsTwoConnected G)
     (hdegree : MinDegreeAtLeast G 5) :
-    HasCycleDivisibleBy G 5 := by
-  rcases BGLP.two_connected_minimum_degree
-      5 G (by omega) hconnected hdegree with
-    hfamilies | hK6 | hK5t
-  · obtain ⟨F⟩ := hfamilies
-    exact F.hasCycleDivisibleByFive
-  · obtain ⟨C, hC⟩ :=
-      ClassicalGraphTheory.complete_six_has_five_cycle
-        G hK6
-    exact ⟨C, by simp [hC]⟩
-  · obtain ⟨C, hC⟩ :=
-      ClassicalGraphTheory.complete_bipartite_five_has_ten_cycle
-        G (Fintype.card X - 5) hK5t hdegree
-    exact ⟨C, by simp [hC]⟩
+    HasCycleDivisibleBy G 5 :=
+  divisible_cycle_of_two_connected_min_degree_five_internal
+    G hconnected hdegree
 
 /--
 The paper's final theorem.

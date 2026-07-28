@@ -93,14 +93,12 @@ assert_axioms DeanK5.dean_conjecture_k5
   propext
   Classical.choice
   Quot.sound
-  DeanK5.BGLP.two_connected_minimum_degree
   DeanK5.COY.one_exception_rooted_paths
 
 assert_module_prefix_axioms DeanK5
   propext
   Classical.choice
   Quot.sound
-  DeanK5.BGLP.two_connected_minimum_degree
   DeanK5.COY.one_exception_rooted_paths
 
 #print axioms DeanK5.GHLM.rooted_admissible_paths_one
@@ -117,10 +115,14 @@ assert_module_prefix_axioms DeanK5
 #print axioms DeanK5.StandingSetup.no_k4minus
 #print axioms DeanK5.isThreeConnected_contractPair
 #print axioms DeanK5.StandingSetup.triangle_contraction_admissible_paths
+#print axioms DeanK5.StandingSetup.triangle_contraction_admissible_paths_no_deficient
 #print axioms DeanK5.StandingSetup.no_triangle
 #print axioms DeanK5.Theta.minimumOrder_isInduced
 #print axioms DeanK5.Theta.minimumOrder_attachment_induces_oneSubdivisionK4
 #print axioms DeanK5.GHLM.minimum_theta_structure_internal
+#print axioms DeanK5.no_divisible_cycle_adjoinRoot_empty
+#print axioms DeanK5.standingSetupOfTwoConnected
+#print axioms DeanK5.divisible_cycle_of_two_connected_min_degree_five_internal
 #print axioms DeanK5.isTwoConnected_of_connected_delete_one
 #print axioms DeanK5.boundaryAuxGraph_add_roots_two_connected
 #print axioms DeanK5.finiteDegree_le_induced_region_add_boundary
