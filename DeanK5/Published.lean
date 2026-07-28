@@ -11,7 +11,7 @@ graph-theory fact is placed here.
 
 Sources:
 
-* GHLM: Gao--Huo--Liu--Ma, IMRN 2022, Theorem 3.1 and Lemma 5.10.
+* GHLM: Gao--Huo--Liu--Ma, IMRN 2022, Theorem 3.1.
 * COY: Chiba--Ota--Yamashita, J. Graph Theory 103 (2023), Theorem 3,
   as quoted in BGLP Theorem 2.2.
 * BGLP: Bai--Grzesik--Li--Prorok, JCTB 180 (2026), Theorem 1.3.
@@ -58,23 +58,6 @@ axiom rooted_admissible_paths
     (hconn : IsTwoConnected (G ⊔ edge x y))
     (hdeg : ∀ v, v ≠ x → v ≠ y → q + 1 ≤ finiteDegree G v) :
     Nonempty (AdmissiblePathFamily G x y q)
-
-/--
-GHLM Lemma 5.10, all three conclusions.
--/
-axiom minimum_theta_structure
-    [Fintype V] [DecidableEq V]
-    (G : SimpleGraph V)
-    (hgirth : GirthAtLeast G 6)
-    (h10 : HasNoCycleLength G 10)
-    (T : Theta G) (hmin : T.IsMinimumOrder) :
-    T.IsInduced ∧
-      Set.Subsingleton
-        {v : V | v ∉ T.verts ∧
-          2 ≤ (G.neighborSet v ∩ (↑T.verts : Set V)).ncard} ∧
-      ∀ v : V, v ∉ T.verts →
-        2 ≤ (G.neighborSet v ∩ (↑T.verts : Set V)).ncard →
-        InducesOneSubdivisionK4 G (insert v T.verts)
 
 end GHLM
 

@@ -5,6 +5,7 @@ import DeanK5.SubdivisionK4
 import DeanK5.ThetaResidue
 import DeanK5.ThetaCore
 import DeanK5.ThetaExistence
+import DeanK5.GHLMMinimumTheta
 import DeanK5.EndLobeComponents
 
 /-!
@@ -4591,7 +4592,7 @@ theorem StandingSetup.exists_thetaEnvelope_of_minimum
     Nonempty (ThetaEnvelope J) := by
   classical
   obtain ⟨hHinduced, hatMostOne, hsubdivision⟩ :=
-    GHLM.minimum_theta_structure J
+    GHLM.minimum_theta_structure_internal J
       setup.girth_at_least_six
       setup.no_ten_cycle H hminimum
   obtain ⟨hHtwo, hHdegree⟩ :=
