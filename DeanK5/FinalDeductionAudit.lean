@@ -73,8 +73,8 @@ assert_axioms DeanK5.dean_conjecture_k5
 
 /-!
 The reachability ledger makes the architectural claims above enforceable:
-both terminal COY branches and every displayed milestone must occur in the
-final theorem's kernel dependency closure.
+the terminal and nonterminal COY branches and every displayed milestone must
+occur in the final theorem's kernel dependency closure.
 -/
 assert_reachable_from DeanK5.dean_conjecture_k5
   DeanK5.COY.PreferredWorkingCoreData.ExteriorOrderedBlockChain.false_of_terminal_lastFeasible

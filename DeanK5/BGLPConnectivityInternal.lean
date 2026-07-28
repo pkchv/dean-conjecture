@@ -148,7 +148,7 @@ namespace BGLP
 
 /--
 The exact `k = 5`, `r = 1` consequence of BGLP Lemma 2.3 used in
-the manuscript.  The proof is internal and depends only on GHLM's rooted
+the paper.  The proof is internal and depends only on GHLM's rooted
 three-path theorem.
 -/
 theorem three_connected_of_two_connected_minDegree_four

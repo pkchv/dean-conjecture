@@ -1,8 +1,9 @@
-# Formal trust-audit sources
+# Mathematical provenance sources
 
-This directory contains only the exact source snapshots used in the Lean trust
-audit: the named published assumptions in `DeanK5/Published.lean` and the
-published statements compared with internal Lean proofs.
+This directory contains the exact source snapshots used to compare the paper
+and its internal Lean proofs with the published literature. They record
+mathematical provenance, theorem locations, and stable checksums; none is
+imported as an axiom by the Lean development.
 
 ## Source index
 
@@ -16,9 +17,15 @@ minimum degree," *Journal of Combinatorial Theory, Series B* **180** (2026),
 
 - Snapshot: [`BGLP_2511.03085v2.pdf`](BGLP_2511.03085v2.pdf)
 - SHA-256: `9126320d86bf6579916af192c61fcd04630654b87ad9d6bad4147201541ba8d7`
-- External inputs: Theorem 1.3 (PDF page 2), and Theorem 2.2 and Lemma 2.3
-  (PDF page 6).
-- Internally formalized comparison result: Lemma 3.1 (PDF page 8).
+- Statement comparison: Theorem 2.2 (PDF page 6) records the finite-order
+  form of the bounded COY theorem proved in
+  [`COYRootedInternal.lean`](../DeanK5/COYRootedInternal.lean).
+- Internally formalized comparison results: the needed `k = 5`
+  divisible-cycle consequence of Theorem 1.3 (PDF page 2), the needed
+  `k = 5`, `r = 1` consequence of Lemma 2.3 (PDF page 6), and the
+  complete-bipartite path ranges used from Lemma 3.1 (PDF page 8). The first
+  is obtained by reusing the paper's Sections 4 through 7 in the
+  deficiency-free case rather than by formalizing BGLP Lemma 3.11 verbatim.
 
 ### COY
 
@@ -30,8 +37,10 @@ existence of a sequence of cycles whose lengths differ by one or two,"
 
 - Snapshot: [`COY_2008.09783v1.pdf`](COY_2008.09783v1.pdf)
 - SHA-256: `f2f810840c43bee2a2835cace2dafe430b3daae6fa4b53a6f658d26715832957`
-- Used result: Theorem 3 (PDF page 3), in the order-at-least-four form quoted
-  as BGLP Theorem 2.2 (BGLP PDF page 6).
+- Internal comparison result: the `2 ≤ q ≤ 4` fragment of Theorem 3
+  (PDF page 3), in the order-at-least-four form quoted as BGLP Theorem 2.2
+  (BGLP PDF page 6). The public Lean theorem has the exceptional vertex
+  distinct from both roots.
 
 ### GHLM
 
@@ -43,6 +52,8 @@ cycle lengths in graphs," *International Mathematics Research Notices*
 
 - Snapshot: [`GHLM_1904.08126v3.pdf`](GHLM_1904.08126v3.pdf)
 - SHA-256: `8ad18b1cb762642487d4fcaff58ba9786356e427c41fefb78b8209ae2de2795a`
-- External inputs: Theorem 3.1 (PDF page 5) and Lemma 5.10 (PDF page 22).
-- Internally formalized comparison result: the configuration used from
-  Lemma 5.9 (PDF page 22).
+- Internally formalized comparison results: the needed `2 ≤ q ≤ 4` fragment
+  of Theorem 3.1 (PDF page 5), and Lemmas 5.9 and 5.10 (PDF page 22). The
+  rooted-path fragment is derived from the internally proved COY theorem;
+  the `q = 1` base case needed by the bounded COY induction is proved
+  directly.
