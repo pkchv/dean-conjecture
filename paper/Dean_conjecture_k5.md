@@ -1,7 +1,7 @@
 ---
 title: "Dean's conjecture at five"
 author-meta: "Kamil Sieniawski"
-date: "26 July 2026"
+date: "28 July 2026"
 lang: en-US
 documentclass: article
 classoption:
@@ -41,13 +41,11 @@ header-includes:
   - |
     \frenchspacing
   - |
+    \hyphenation{entirely}
+  - |
     \clubpenalty=10000
     \widowpenalty=10000
     \displaywidowpenalty=10000
-    \interlinepenalty=10000
-    \brokenpenalty=10000
-    \predisplaypenalty=10000
-    \postdisplaypenalty=10000
   - |
     \usepackage{enumitem}
     \setlist[enumerate]{
@@ -85,14 +83,13 @@ its exterior, then provides two three-path families whose residues yield the
 final contradiction modulo five. Together with the previously known cases,
 this establishes Dean's conjecture for every $k\ge3$.
 
-**Formal verification.** Lean verifies the modulus-five theorem conditional
-on the five published statements listed in Section 1.3: GHLM Theorem 3.1 and
-Lemma 5.10, the COY one-exception rooted-path theorem, and BGLP Theorem 1.3
-and Lemma 2.3. All other auxiliary ingredients of the modulus-five proof are
-formalized in Lean. The paper source and Lean formalization are available at
-[`github.com/pkchv/dean-conjecture`](https://github.com/pkchv/dean-conjecture).
+**Formal verification.** The modulus-five theorem is verified in Lean. The
+paper and Lean sources are available at
+[github.com/pkchv/dean-conjecture](https://github.com/pkchv/dean-conjecture).
+Section 1.3 explains the relationship between the proof presented here, the
+published results it uses, and the formal proof.
 
-**AI disclosure.** Fully generated, GPT-5.6 Sol and GPT-5.6 Sol Pro.
+**AI disclosure.** The mathematical proof, manuscript, and Lean formalization were generated entirely by GPT-5.6 Sol and GPT-5.6 Sol Pro.
 
 \newpage
 
@@ -107,6 +104,9 @@ recently resolved every case $k\ge6$.^[[8]](#ref-luo-ma-zhao-2026)^ Thus
 $k=5$ was the unique remaining case, as also recorded by Choi, Chu, Kim, and
 Park.^[[4]](#ref-choi-chu-kim-park-2026)^ The theorem proved here therefore
 completes Dean's conjecture.
+
+For brevity, write BGLP for Bai--Grzesik--Li--Prorok, COY for
+Chiba--Ota--Yamashita, and GHLM for Gao--Huo--Liu--Ma.
 
 ### 1.1. Proof architecture
 
@@ -217,16 +217,14 @@ $$
 
 **Two-connected minimum-degree theorem (BGLP, Theorem 1.3).**^[[1]](#ref-bglp-2026)^ Let $H$ have order $n$. If $H$ is 2-connected and
 $\delta(H)\ge k\ge4$, then $H$ has $k$ admissible cycles, unless it is
-isomorphic to one of the following two graphs.^[The complete-bipartite step
-in the proof uses only the path ranges recorded in Section 6.2. Under the
-minimum-order choice in that argument, a deleted-edge core whose smaller
-part has size two reduces to the smaller complete core $K_{2,t-1}$; every
-subsequent deleted-edge use has smaller part at least three.]
+isomorphic to one of the following two graphs:
 $$
  H\cong K_{k+1}
  \qquad\text{or}\qquad
  H\cong K_{k,n-k}.
 $$
+
+\Needspace{8\baselineskip}
 
 **Minimum-theta structure (GHLM, Lemma 5.10).**^[[7]](#ref-gao-huo-liu-ma-2022)^ Let $A$ have girth at least six and no
 10-cycle, and let $H$ be a minimum-order theta in $A$. Then $H$ is induced;
@@ -236,8 +234,14 @@ $A[V(H)\cup\{v\}]$ is isomorphic to a one-subdivision of $K_4$.
 
 The auxiliary forms of the two-link theorem, the subdivision-attachment
 lemma, and the complete-bipartite path ranges are proved where they are used
-and are also formalized in the accompanying development. Lemma 2.4 gives the
-remaining theta-residue calculation.
+and are also formalized in Lean. Lemma 2.4 gives the remaining theta-residue
+calculation.
+
+The proof uses the five published results above as stated. The Lean
+formalization proves internally the specializations used here: its rooted-path
+interfaces cover every value $2\le q\le4$ occurring below, and its
+two-connected branch applies the Sections 4--7 argument with empty deficiency
+rather than formalizing BGLP Theorem 1.3 verbatim.
 
 ## 2. Length arithmetic and simple-cycle assembly
 
@@ -295,6 +299,8 @@ $$
 $$
 for a constant $\lambda$ independent of $i,j$. Then the cycles $C_{ij}$
 contain an admissible subfamily of at least $s+t-1$ members.
+
+\Needspace{10\baselineskip}
 
 **Proof.** For each $b\in\mathcal B$, choose a corresponding outside path
 $P_b$, with ends $x_b,y_b$. Its internal vertices avoid $V(H)$, whereas
@@ -454,7 +460,7 @@ is a simple cycle: the two end-block interiors are disjoint, $R$ avoids
 both, and $c\notin V(J)$. When $b_1=b_2$, the two sides share only $c$ and
 their common endpoint. The possible lengths are
 $$
- 2+|R|+\mathcal A_1+\mathcal A_2.
+ 2+|E(R)|+\mathcal A_1+\mathcal A_2.
 $$
 By Lemma 2.1 these include five admissible cycle lengths, one divisible by
 five. $\square$
@@ -483,8 +489,8 @@ exception.
 
 **Lemma 3.3 (root lifting).** Let $A$ be a subgraph of $J$, with
 $V(A)\subseteq V(J)$, and let $x,y\in V(A)$ be distinct roots such that
-$xy\notin E(A)$ and $A+xy$ is 2-connected. Let $q$ be a positive integer,
-and let
+$xy\notin E(A)$ and $A+xy$ is 2-connected. Let $q$ be an integer with
+$2\le q\le4$, and let
 $$
  Z\subseteq D\cap\bigl(V(A)\setminus\{x,y\}\bigr)
 $$
@@ -495,13 +501,15 @@ $$
  \qquad
  d_A(z)\ge q\quad(z\in Z). \tag{3.4}
 $$
-If $|Z|=1$, assume $|V(A)|\ge4$. Then $B$ contains $q$ admissible
-$x,y$-paths whose internal vertices lie in $V(A)$, except that when
-$|Z|\ge2$ they may also contain $c$.
+Assume additionally that $|V(A)|\ge4$ in the case $|Z|=1$. Then $B$
+contains $q$ admissible $x,y$-paths whose internal vertices lie in $V(A)$,
+except that when $|Z|\ge2$ they may also contain $c$.
 
 **Proof.** If $Z=\varnothing$, apply GHLM Theorem 3.1 to $A$. If
 $|Z|=1$, apply the COY theorem to $A$, taking the unique vertex of $Z$ as
 the exception.
+
+\Needspace{8\baselineskip}
 
 Now suppose $|Z|\ge2$. Let $A^+$ be obtained from $A$ by adjoining $c$ and
 the edges $cz$ for $z\in Z$. By (3.3b), each such edge belongs to $B$, so
@@ -569,6 +577,8 @@ $i\in\{0,1\}$, set
 $$
  A_i=A(Q_i;x,y).
 $$
+\Needspace{8\baselineskip}
+
 Let $Z_i=D\cap Q_i$. Since $|Q_i|\ge2$, Lemma 3.3 with $q=3$ applies and
 gives three admissible $x,y$-paths on each side: Lemma 4.1 gives the
 augmented 2-connectivity, (4.1) gives the degrees, and
@@ -639,6 +649,8 @@ $$
  x-y-b-w-a-x
 $$
 would be a 5-cycle. Put $K=\{a,b\}$.
+
+\Needspace{8\baselineskip}
 
 Deleting two vertices from the 4-connected graph $J$ leaves a 2-connected
 graph, so $J-K$ is 2-connected. Let
@@ -715,6 +727,8 @@ shows that $B/qr$ is 2-connected, and
 $$
  L+pt=B/qr.
 $$
+\Needspace{10\baselineskip}
+
 For $v\in V(B)\setminus\{p,q,r,c\}$, identify $v$ with its unchanged image
 in $L$. The contraction merges no two edges incident with $v$, since $v$ has
 at most one neighbor in the triangle. Hence
@@ -728,10 +742,12 @@ The COY theorem with $q=4$ and exceptional vertex $c$ gives four admissible
 $p,t$-paths in $L$.
 
 The edge $pt$ is absent, so each rooted path has length at least two. In a
-simple $p,t$-path, $t$ occurs only at the end. If $v$ is its penultimate
-vertex, then $vt$ comes from $vq$ or $vr$ in $B$; replace it by one such
-edge. No earlier vertex represents $q$ or $r$, so this gives a simple path of
-the same length ending at one of $q,r$ and avoiding the other.
+simple $p,t$-path, $t$ occurs only at the end. Every other quotient vertex
+has a unique unchanged preimage, and every preceding path edge is an edge of
+$B$. If $v$ is the penultimate vertex, then $vt$ comes from $vq$ or $vr$ in
+$B$; replace it by one such edge. No earlier vertex represents $q$ or $r$,
+so this gives a simple path of the same length ending at one of $q,r$ and
+avoiding the other.
 
 Close a lift ending at $q$ by $qp$ or by $qrp$, and use the symmetric
 closures for a lift ending at $r$. The unused triangle vertex is absent from
@@ -767,12 +783,16 @@ $Q=H-\{x,y\}$. Suppose that:
 Then $H+xy$ is 2-connected.
 
 **Proof.** The graph $H+xy$ is connected, and deleting either root leaves
-the other joined to $Q$. The independent boundary edges give at least four
-vertices, so the order condition is automatic. If $w\in Q$ were a cut
-vertex, the edge $xy$ would keep the roots in one component of
-$(H+xy)-w$, while another component of $Q-w$ would contain no neighbor of
+the other joined to $Q$. The independent boundary edges exhibit the four
+distinct vertices $x,y,u,v$, so $|V(H)|\ge4$ and the order requirement for
+2-connectivity holds. Suppose that $w\in Q$ is a cut vertex of $H+xy$. The
+edge $xy$ keeps the roots together, and $u\ne v$ ensures that at least one of
+their two attachments survives the deletion of $w$. Thus the roots lie with
+one component of $Q-w$, while some other component contains no neighbor of
 either root. The block-cut tree supplies an end block of $Q$ in that
 component and away from $w$, contradicting (3). $\square$
+
+\Needspace{10\baselineskip}
 
 **Lemma 6.2 (boundary-root lifting).** Let $c\in V(B)$, put $J=B-c$, and
 let $D\subseteq V(J)$ satisfy $D\subseteq N_B(c)$. Let $H$ have distinct
@@ -781,11 +801,11 @@ and put
 $$
  Q=H-\{\alpha,\beta\}.
 $$
-Suppose that $H[Q]$ admits an injective graph embedding into $J$. Relabel the
+Suppose that $Q$ admits an injective graph embedding into $J$. Relabel the
 old vertices by their images under this embedding; henceforth
-$V(Q)\subseteq V(J)$ and $H[Q]\subseteq J$. Suppose also that
-$H+\alpha\beta$ is 2-connected. Set $Z=D\cap V(Q)$. Let $q$ be a positive
-integer and suppose
+$V(Q)\subseteq V(J)$ and $Q\subseteq J$. Suppose also that
+$H+\alpha\beta$ is 2-connected. Set $Z=D\cap V(Q)$. Let $q$ be an integer
+with $2\le q\le4$, and suppose
 $$
  d_H(v)\ge q+1\quad(v\in V(Q)\setminus Z),
  \qquad
@@ -794,7 +814,7 @@ $$
 
 \Needspace{7\baselineskip}
 
-If $|Z|=1$, assume $|V(H)|\ge4$. Then:
+Assume additionally that $|V(H)|\ge4$ in the case $|Z|=1$. Then:
 
 1. if $|Z|\le1$, $H$ contains $q$ admissible
    $\alpha,\beta$-paths whose internal vertices lie in $Q$;
@@ -847,6 +867,9 @@ $$
  \cup
  \{K_{s,t}^-:\min\{s,t\}\ge2,\ \max\{s,t\}\ge3\}.
 $$
+
+\Needspace{11\baselineskip}
+
 We shall use the following elementary path ranges.
 
 **Complete-bipartite path lemma.** Let $F=K_{s,t}$ with
@@ -884,11 +907,12 @@ $$
  s_0t_0s_1t_1\cdots s_{r-1}t_{r-1}s_r,
  \qquad s_0=x,\quad s_r=y.
 $$
-Omit either missing endpoint whenever it is not prescribed and enough
-vertices remain in its part. If both must occur, place $b$ at $t_1$ when
-$a=x$, at $t_0$ when $a=y$, and otherwise place $a$ at $s_1$ and
-$b$ at $t_2$. Since $r\ge3$, these positions exist, and in each case
-$a$ and $b$ are nonconsecutive.
+Avoid $a$ or $b$, the endpoints of the deleted edge, whenever the vertex in
+question is not one of the prescribed path endpoints and enough vertices
+remain in its part. If both $a$ and $b$ must occur, place $b$ at $t_1$ when
+$a=x$, at $t_0$ when $a=y$, and otherwise place $a$ at $s_1$ and $b$ at
+$t_2$. Since $r\ge3$, these positions exist, and in each case $a$ and $b$
+are nonconsecutive.
 
 Finally let $x\in S$, $y\in T$, and let the desired length be $2m+1$.
 The case $m=0$ is the assumed edge $xy$. Otherwise choose an alternating
@@ -958,7 +982,7 @@ boundary vertex is checked separately below.
 Every auxiliary graph has at least four vertices, so the order condition in
 Lemma 6.2 causes no further issue.
 
-In every case below, an auxiliary graph retains all edges of $J[Q]$, deletes
+In every case below, an auxiliary graph retains all edges of $Q$, deletes
 the boundary edges from $Q$ to the core, and replaces all boundary edges of
 each represented type at a vertex by one edge to the corresponding
 artificial root.
@@ -967,27 +991,30 @@ Each case now follows the same pattern. Core attachments are represented by
 two artificial roots; the outside-neighbor bound gives the degree estimate;
 Lemma 6.2 returns admissible paths to genuine, distinct endpoints of $F$; and
 the bipartite path ranges close them through the core. It remains to
-distinguish how $Q$ meets the two parts.
+distinguish whether $Q$ has attachments in one or both parts.
 
 The numerical bookkeeping is the same in every case. The middle columns
 count available lengths, and the last records the admissible-term guarantee
 from Lemma 2.1:
 $$
+\setlength{\arraycolsep}{3pt}
 \begin{array}{c|c|c|c}
 \text{case}
 &\text{outside count}
 &\text{core count}
-&\text{Lemma 2.1 guarantee}\\ \hline
-r=2,\ Q\text{ meets both parts}
+&\text{guarantee}\\ \hline
+r=2,\ Q\text{ has attachments in both parts}
 &4&2&4+2-1=5\\
-r=2,\ Q\text{ meets one part}
+r=2,\ Q\text{ has attachments in one part}
 &4&2&4+2-1=5\\
-3\le r\le4,\ Q\text{ meets both parts}
+3\le r\le4,\ Q\text{ has attachments in both parts}
 &6-r&r&(6-r)+r-1=5\\
-3\le r\le4,\ Q\text{ meets one part}
+3\le r\le4,\ Q\text{ has attachments in one part}
 &7-r&r-1&(7-r)+(r-1)-1=5
 \end{array}
 $$
+
+\Needspace{10\baselineskip}
 
 #### Rank two
 
@@ -997,12 +1024,17 @@ $K_{2,t-1}$ in $\mathcal F$, since $t\ge3$, with the same
 outside-neighbor bound: the newly external vertex $y_1$ has exactly one
 neighbor in the smaller core, and shrinking the core cannot increase any
 other exterior count. This contradicts the minimality of $F$. Thus
-$F=K_{2,t}$.
+$F=K_{2,t}$.^[This is also the rank-two reduction used in the
+complete-bipartite step of the proof of BGLP Theorem 1.3; every subsequent
+deleted-edge use in that proof has smaller part at least three.]
 
-Since $J$ is 3-connected and $|S|=2$, the component $Q$ must meet $T$.
-Suppose that it also meets $S$. Form $H_{ST}$ from $Q$ by adjoining roots
-$s^*,t^*$ and joining $v\in Q$ to a root whenever $v$ has a neighbor in the
-represented part. The outside-neighbor bound is one, so the two root
+\Needspace{10\baselineskip}
+
+Since $J$ is 3-connected and $|S|=2$, the component $Q$ must have an
+attachment in $T$. Suppose that it also has an attachment in $S$. Form
+$H_{ST}$ from $Q$ by adjoining roots $s^*,t^*$ and joining $v\in Q$ to a
+root whenever $v$ has a neighbor in the represented part. The
+outside-neighbor bound is one, so the two root
 attachments have distinct endpoints in $Q$. Lemma 6.1 gives that
 $H_{ST}+s^*t^*$ is 2-connected. Each boundary edge deleted at a vertex of $Q$
 is replaced by the corresponding root edge, and hence
@@ -1011,6 +1043,8 @@ $$
  \qquad
  d_{H_{ST}}(v)=4\quad(v\in V(Q)\cap D).
 $$
+\Needspace{8\baselineskip}
+
 For an edge $s^*v$, use $N_J(v)\cap S$ as its represented endpoint set; for
 an edge $vt^*$, use $N_J(v)\cap T$. The represented endpoints lie in
 opposite parts and are therefore distinct. Lemma 6.2 with $q=4$ gives four
@@ -1042,11 +1076,11 @@ $$
 
 #### Attachments in both parts
 
-Suppose that $Q$ meets both $S$ and $T$. First let $F=K_{s,t}$. Form
-$H_{\mathrm{opp}}$ by adjoining roots that represent $S$ and $T$. No vertex
-of $Q$ meets both parts, since any such pair of neighbors would form a
-triangle with their cross-edge. Thus the root attachments are independent,
-and Lemma 6.1 applies. For $v\in Q$, put
+Suppose that $Q$ has attachments in both $S$ and $T$. First let
+$F=K_{s,t}$. Form $H_{\mathrm{opp}}$ by adjoining roots that represent $S$
+and $T$. No vertex of $Q$ has neighbors in both parts, since any such pair
+of neighbors would form a triangle with their cross-edge. Thus the root
+attachments are independent, and Lemma 6.1 applies. For $v\in Q$, put
 $m=|N_J(v)\cap V(F)|\le r-1$. If $m>0$, replacing the $m$ core edges by one
 root edge gives degree $d_J(v)-m+1$; if $m=0$, the degree is unchanged.
 Hence
@@ -1074,6 +1108,8 @@ nonempty graph $F-\{x_1,y_1\}$. Interchanging $S,T$ if necessary, assume
 that $Q$ has a neighbor in $T\setminus\{y_1\}$; by the present case
 assumption, it also has a neighbor in $S$. Form $H_{\mathrm{del}}$ with
 roots representing $S$ and $T\setminus\{y_1\}$.
+
+\Needspace{8\baselineskip}
 
 Every end block $E$ of $Q$ has an inner vertex adjacent to
 $F-\{y_1\}$. If $Q$ has no cut vertex (including $Q\cong K_2$), then it is
@@ -1147,6 +1183,8 @@ $$
  N_T(v)\cap T_i,&d_T(v)=1.
  \end{cases}
 $$
+\Needspace{8\baselineskip}
+
 This set is nonempty whenever $vt_i^*$ is present. We claim that, for every
 rooted $t_1^*,t_2^*$-path, the two represented endpoints can be chosen
 distinct.
@@ -1159,6 +1197,8 @@ singletons, their elements lie in the disjoint sets $T_1,T_2$. If at least
 one represented set has at least two elements, choose the endpoint from the
 other set first and then avoid it in the larger set. This proves the
 boundary-replacement condition in Lemma 6.2.
+
+\Needspace{13\baselineskip}
 
 Lemma 6.2 with
 $$
@@ -1335,16 +1375,20 @@ Call $E_i$ **light** if $|Z_i|\le1$ and **heavy** otherwise.
 
 Adding the root edge in $A_i$ gives a 2-connected graph containing $E_i$.
 An inner vertex of an end block has no neighbor in $Q$ outside that block.
-Hence, for every nonroot $v\in V(E_i)$,
+Hence, for every $v\in V(E_i)\setminus\{b_i\}$,
 $$
  d_{E_i}(v)=d_Q(v)=d_M(v).
 $$
-Deleting $u_ib_i$ affects only the roots.
+Passing from $E_i$ to $A_i$ by deleting $u_ib_i$ affects only
+$u_i,b_i$.
 Thus (7.2) gives the degree hypotheses of Lemma 3.3 with $q=3$. If
-$|Z_i|=1$, the order condition also holds: a 2-connected $E_i$ of order
-three would be a triangle in $J$. Thus each $E_i$ supplies three admissible
+$|Z_i|=1$, its order condition also holds:
+$d_{E_i}(u_i)=d_M(u_i)\ge3$ by (7.2), so
+$|V(A_i)|=|V(E_i)|\ge4$. Thus each $E_i$ supplies three admissible
 $u_i,b_i$-paths. A light family avoids $c$, whereas a heavy family may use
 $c$.
+
+\Needspace{12\baselineskip}
 
 Suppose first that at least one end block is light. Then, for every choice of
 paths $P_i$ from the two admissible families, at most one of $P_1,P_2$
@@ -1375,12 +1419,13 @@ five admissible cycles, a contradiction.
 
 It remains that both end blocks are heavy. Let $K_i$ be obtained from $E_i$
 by adjoining $c$ and all edges from $c$ to $D\cap V(E_i)$. Since $Z_i$
-contains at least two nonroot vertices, $c$ has at least two neighbors in
+contains at least two vertices of $E_i-b_i$, $c$ has at least two neighbors in
 $E_i$, and adjoining it through those distinct neighbors makes $K_i$
 2-connected. Apply GHLM Theorem 3.1 with $q=3$ to $K_i-cb_i$, rooted at the
 distinct vertices $c,b_i$. Adding the root edge preserves 2-connectivity,
-and deleting it affects only the roots. Every nonroot outside $D$ has degree
-at least four in $E_i$, while every nonroot in $D$ has degree at least three
+and deleting it affects only the roots. Every
+$v\in V(E_i)\setminus(D\cup\{b_i\})$ has degree at least four in $E_i$,
+while every $v\in(D\cap V(E_i))\setminus\{b_i\}$ has degree at least three
 and gains its edge to $c$. Hence each side supplies three admissible
 $c,b_i$-paths.
 
@@ -1399,6 +1444,8 @@ $$
 $$
 The two-variable form of Lemma 2.2 again produces five admissible cycles, a
 contradiction. Hence every component of $M$ is 2-connected. $\square$
+
+\Needspace{20\baselineskip}
 
 ### 7.2. Connectivity of the exterior
 
@@ -1453,10 +1500,11 @@ and call $Q_i$ light if $|Z_i|\le1$ and heavy otherwise. Adding the root
 edge in $A_i$ gives a 2-connected graph containing $Q_i$. Since $Q_i$ is a
 component of $M$, every vertex retains all its $M$-neighbors, and deleting
 the root edge affects only the roots; thus (7.2) gives the degree hypotheses
-of Lemma 3.3 with $q=3$. When $|Z_i|=1$, the order condition follows from
-the absence of triangles. Hence each component
-supplies three admissible $u_{i,1},u_{i,2}$-paths; a light family avoids $c$,
-whereas a heavy family may use it.
+of Lemma 3.3 with $q=3$. When $|Z_i|=1$, its order condition also holds:
+$d_{Q_i}(u_{i,1})=d_M(u_{i,1})\ge3$ by (7.2), so
+$|V(A_i)|=|V(Q_i)|\ge4$. Hence each component supplies three admissible
+$u_{i,1},u_{i,2}$-paths; a light family avoids $c$, whereas a heavy family
+may use it.
 
 Suppose first that at most one component is heavy. Apply the two-link lemma in
 $T$ to
@@ -1533,27 +1581,30 @@ $$
 By construction $x'y'\notin E(A)$. The graph $A+x'y'$ is 2-connected
 because it contains $M$ as a spanning subgraph. Deleting the root edge
 affects only the root degrees, so (7.2)
-gives the hypotheses of Lemma 3.3 with $q=3$. The order condition also
-holds, since a 2-connected graph of order three would be a triangle. We
-obtain three admissible $x',y'$-paths with interiors in $M\cup\{c\}$. Write
-their lengths as
+gives the hypotheses of Lemma 3.3 with $q=3$. Moreover,
+$d_M(x')\ge3$ by (7.2), so $|V(A)|=|V(M)|\ge4$. We obtain three admissible
+$x',y'$-paths whose vertices lie in $V(M)\cup\{c\}$. Write their lengths as
 $$
  a,\ a+d,\ a+2d,
  \qquad d\in\{1,2\}.
 $$
 
+\Needspace{12\baselineskip}
+
 Let $\mathcal R\subseteq\mathbb Z/5\mathbb Z$ be the three distinct residues
-of the selected $x,y$-paths in $T$. Pair any one of these core paths with
-any one of the three $x',y'$-paths, and add the edges $xx'$ and $yy'$. The
-result is a simple cycle. Every core path has its full support in $T$, while
-every lifted path has its full support in $M\cup\{c\}$; these sets are
-disjoint. After adding the two attachment edges, the resulting exterior
-$x,y$-path therefore meets the core path exactly at the distinct vertices
-$x,y$. Its length is congruent to
+of the selected $x,y$-paths in $T$. For a lifted $x',y'$-path $P$, adjoining
+$xx'$ and $y'y$ produces an $x,y$-path whose internal vertices lie in
+$V(M)\cup\{c\}$. Since
+$$
+ V(T)\cap\bigl(V(M)\cup\{c\}\bigr)=\varnothing,
+$$
+this exterior path meets every selected core $x,y$-path exactly at the
+distinct vertices $x,y$. Their union is therefore a simple cycle. If $P$ is
+the $i$-th lifted path and the core path has residue
+$r\in\mathcal R$, its length is congruent to
 $$
  a+id+2+r\pmod5,
- \qquad 0\le i\le2,
- \quad r\in\mathcal R.
+ \qquad 0\le i\le2.
 $$
 Lemma 2.3, applied with $a$ replaced by $a+2$, shows that one of these nine
 cycles has length divisible by five. This cycle lies in $B$, contradicting
@@ -1562,22 +1613,27 @@ counterexample $G_0$ cannot exist.
 
 ## 8. Completion
 
+The preceding contradiction proves the main result.
+
 **Theorem.** Every nonempty finite simple graph of minimum degree at least
-five contains a simple cycle whose length is divisible by five. $\square$
+five contains a simple cycle whose length is divisible by five.
 
 Combining this theorem with the cases $k=3$ and $k=4$, proved by Chen and
 Saito^[[2]](#ref-chen-saito-1994)^ and Dean, Lesniak, and Saito
 ^[[6]](#ref-dean-lesniak-saito-1993)^, respectively, and the result of Luo,
 Ma, and Zhao for every $k\ge6$^[[8]](#ref-luo-ma-zhao-2026)^ gives the full
-conjecture.
+conjecture:
 
 **Corollary (Dean's conjecture).** For every integer $k\ge3$, every nonempty
 finite simple graph of minimum degree at least $k$ contains a simple cycle
-whose length is divisible by $k$. $\square$
+whose length is divisible by $k$.
 
 \newpage
 
 ## References
+
+\begingroup
+\raggedright
 
 1. []{#ref-bglp-2026}Y. Bai, A. Grzesik, B. Li, and M. Prorok, "Cycle
    lengths in graphs of
@@ -1625,3 +1681,5 @@ whose length is divisible by $k$. $\square$
    and cycles modulo $k$," arXiv preprint (2026).
    [doi:10.48550/arXiv.2601.13552](https://doi.org/10.48550/arXiv.2601.13552);
    [arXiv:2601.13552v1](https://arxiv.org/abs/2601.13552v1).
+
+\endgroup
