@@ -95,7 +95,6 @@ assert_axioms DeanK5.dean_conjecture_k5
   Quot.sound
   DeanK5.BGLP.two_connected_minimum_degree
   DeanK5.COY.one_exception_rooted_paths
-  DeanK5.GHLM.rooted_admissible_paths
 
 assert_module_prefix_axioms DeanK5
   propext
@@ -103,8 +102,9 @@ assert_module_prefix_axioms DeanK5
   Quot.sound
   DeanK5.BGLP.two_connected_minimum_degree
   DeanK5.COY.one_exception_rooted_paths
-  DeanK5.GHLM.rooted_admissible_paths
 
+#print axioms DeanK5.GHLM.rooted_admissible_paths_one
+#print axioms DeanK5.GHLM.rooted_admissible_paths_internal
 #print axioms DeanK5.isTwoConnected_adjoinRoot
 #print axioms DeanK5.BGLP.three_connected_of_two_connected_minDegree_four
 #print axioms DeanK5.root_deletion_is_three_connected

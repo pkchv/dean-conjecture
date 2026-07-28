@@ -7,6 +7,7 @@ import DeanK5.ThetaCore
 import DeanK5.ThetaExistence
 import DeanK5.GHLMMinimumTheta
 import DeanK5.EndLobeComponents
+import DeanK5.GHLMRootedInternal
 
 /-!
 # The minimum-theta argument (paper Section 7)
@@ -1258,7 +1259,7 @@ theorem StandingSetup.heavy_endLobe_admissible_paths
           simp [hzDZ]
           exact hElower
   obtain ⟨F⟩ :=
-    GHLM.rooted_admissible_paths
+    GHLM.rooted_admissible_paths_internal
       3 G rC rB (by omega) hrne hconn hdeg
   let φ : K →g B :=
     adjoinRootHom E DZ
@@ -2910,7 +2911,7 @@ theorem StandingSetup.heavy_component_admissible_paths
           simp [hzDZ]
           exact hElower
   obtain ⟨F⟩ :=
-    GHLM.rooted_admissible_paths
+    GHLM.rooted_admissible_paths_internal
       3 G rC rY (by omega) hrne hconn hdeg
   let φ : K →g B :=
     adjoinRootHom E DZ

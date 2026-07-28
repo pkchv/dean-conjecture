@@ -4,6 +4,8 @@ import DeanK5.Graph.Connectivity
 import DeanK5.Graph.Separation
 import DeanK5.Concatenation
 import DeanK5.Published
+import DeanK5.GHLMRootedBase
+import DeanK5.GHLMRootedInternal
 import DeanK5.ClassicalGraphTheory
 import DeanK5.EndLobeExistence
 import DeanK5.EndLobeAttachments

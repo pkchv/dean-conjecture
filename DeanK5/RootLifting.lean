@@ -1,4 +1,4 @@
-import DeanK5.Published
+import DeanK5.GHLMRootedInternal
 
 /-!
 # Root lifting (paper Section 3.3)
@@ -349,7 +349,7 @@ theorem root_lifting
     RootLiftResult G Z x y q := by
   rcases lt_trichotomy Z.card 1 with hzero | hone | hlarge
   · have hZ0 : Z = ∅ := Finset.card_eq_zero.mp (Nat.lt_one_iff.mp hzero)
-    obtain ⟨F⟩ := GHLM.rooted_admissible_paths q G x y hq hxy hconn
+    obtain ⟨F⟩ := GHLM.rooted_admissible_paths_internal q G x y hq hxy hconn
       (fun v hvx hvy => hdeg v hvx hvy (by simp [hZ0]))
     let F' := F.mapEmbedding (someEmbedding G Z)
     refine ⟨F', ?_⟩

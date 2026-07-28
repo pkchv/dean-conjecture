@@ -1,5 +1,6 @@
 import DeanK5.ThreeSeparator
 import DeanK5.Concatenation
+import DeanK5.GHLMRootedInternal
 
 /-!
 # The `k = 5` connectivity step from BGLP Lemma 2.3
@@ -66,7 +67,7 @@ private theorem component_three_admissible_paths
           finiteDegree_le_twoRootComponentBase_of_two_separator
             G Q x y z.1 hQ hzQ)
   obtain ⟨F⟩ :=
-    GHLM.rooted_admissible_paths
+    GHLM.rooted_admissible_paths_internal
       3 A rx ry (by omega) hroots hAconn hAdeg
   let f := twoRootComponentBaseHom G Q x y
   have hf : Function.Injective f :=

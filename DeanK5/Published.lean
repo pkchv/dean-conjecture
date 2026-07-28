@@ -11,7 +11,6 @@ graph-theory fact is placed here.
 
 Sources:
 
-* GHLM: Gao--Huo--Liu--Ma, IMRN 2022, Theorem 3.1.
 * COY: Chiba--Ota--Yamashita, J. Graph Theory 103 (2023), Theorem 3,
   as quoted in BGLP Theorem 2.2.
 * BGLP: Bai--Grzesik--Li--Prorok, JCTB 180 (2026), Theorem 1.3.
@@ -45,21 +44,6 @@ def IsCompleteBipartiteMinusAtMostOne
           match missing with
           | none => True
           | some p => ¬((u = p.1 ∧ v = p.2) ∨ (u = p.2 ∧ v = p.1))
-
-namespace GHLM
-
-/--
-GHLM Theorem 3.1 (rooted admissible-path theorem).
--/
-axiom rooted_admissible_paths
-    [Fintype V] [DecidableEq V]
-    (q : ℕ) (G : SimpleGraph V) (x y : V)
-    (hq : 1 ≤ q) (hxy : x ≠ y)
-    (hconn : IsTwoConnected (G ⊔ edge x y))
-    (hdeg : ∀ v, v ≠ x → v ≠ y → q + 1 ≤ finiteDegree G v) :
-    Nonempty (AdmissiblePathFamily G x y q)
-
-end GHLM
 
 namespace COY
 

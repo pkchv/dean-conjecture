@@ -2,6 +2,7 @@ import DeanK5.GirthSixCase
 import DeanK5.Structural
 import DeanK5.ClassicalGraphTheory
 import DeanK5.EndLobeAttachments
+import DeanK5.GHLMRootedInternal
 
 /-!
 # Rooted end-block reduction and completion (paper Sections 3 and 8)
@@ -219,7 +220,7 @@ theorem endLobe_rooted_paths
       E xE bE z hzx hzb]
     exact hEdegree
   obtain ⟨F⟩ :=
-    GHLM.rooted_admissible_paths
+    GHLM.rooted_admissible_paths_internal
       3 A xE bE (by omega) hroots
       hconn hdegree
   let f : A →g B := {
