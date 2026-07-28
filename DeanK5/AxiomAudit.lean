@@ -93,7 +93,6 @@ assert_axioms DeanK5.dean_conjecture_k5
   propext
   Classical.choice
   Quot.sound
-  DeanK5.BGLP.connectivity_of_no_admissible_cycles
   DeanK5.BGLP.two_connected_minimum_degree
   DeanK5.COY.one_exception_rooted_paths
   DeanK5.GHLM.minimum_theta_structure
@@ -103,13 +102,13 @@ assert_module_prefix_axioms DeanK5
   propext
   Classical.choice
   Quot.sound
-  DeanK5.BGLP.connectivity_of_no_admissible_cycles
   DeanK5.BGLP.two_connected_minimum_degree
   DeanK5.COY.one_exception_rooted_paths
   DeanK5.GHLM.minimum_theta_structure
   DeanK5.GHLM.rooted_admissible_paths
 
 #print axioms DeanK5.isTwoConnected_adjoinRoot
+#print axioms DeanK5.BGLP.three_connected_of_two_connected_minDegree_four
 #print axioms DeanK5.root_deletion_is_three_connected
 #print axioms DeanK5.one_component_two_separator_roots
 #print axioms DeanK5.StandingSetup.separator_side_admissible_paths
@@ -173,6 +172,7 @@ assert_module_prefix_axioms DeanK5
 #print axioms DeanK5.StandingSetup.no_four_cycle
 #print axioms DeanK5.theta_three_distinct_residue_paths_of_girth_six
 #print axioms DeanK5.GHLM.outside_vertex_on_subdivided_K4
+#print axioms DeanK5.GHLM.multiNeighborSet_subsingleton_of_induces
 #print axioms DeanK5.ClassicalGraphTheory.induced_theta_core_properties
 #print axioms DeanK5.ClassicalGraphTheory.exists_theta_of_two_connected
 #print axioms DeanK5.ClassicalGraphTheory.two_end_lobes_with_root_attachments

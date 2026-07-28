@@ -8,6 +8,7 @@ import DeanK5.ClassicalGraphTheory
 import DeanK5.EndLobeExistence
 import DeanK5.EndLobeAttachments
 import DeanK5.EndLobeComponents
+import DeanK5.BGLPConnectivityInternal
 import DeanK5.Structural
 import DeanK5.ThreeSeparator
 import DeanK5.StandingSetup

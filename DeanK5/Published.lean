@@ -14,8 +14,7 @@ Sources:
 * GHLM: Gao--Huo--Liu--Ma, IMRN 2022, Theorem 3.1 and Lemma 5.10.
 * COY: Chiba--Ota--Yamashita, J. Graph Theory 103 (2023), Theorem 3,
   as quoted in BGLP Theorem 2.2.
-* BGLP: Bai--Grzesik--Li--Prorok, JCTB 180 (2026), Theorem 1.3 and
-  Lemma 2.3.
+* BGLP: Bai--Grzesik--Li--Prorok, JCTB 180 (2026), Theorem 1.3.
 -/
 
 open scoped Sym2
@@ -98,16 +97,6 @@ axiom one_exception_rooted_paths
 end COY
 
 namespace BGLP
-
-/-- BGLP Lemma 2.3, with its half-integral connectivity bound retained. -/
-axiom connectivity_of_no_admissible_cycles
-    [Fintype V] [DecidableEq V]
-    (k r : ℕ) (G : SimpleGraph V)
-    (hk : 2 ≤ k)
-    (hconn : IsTwoConnected G)
-    (hdeg : MinDegreeAtLeast G (k - r))
-    (hno : ¬ Nonempty (AdmissibleCycleFamily G k)) :
-    ConnectivityAtLeast G (((k + 2 : ℕ) : ℚ) / 2 - r)
 
 /-- BGLP Theorem 1.3. -/
 axiom two_connected_minimum_degree

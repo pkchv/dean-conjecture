@@ -4435,40 +4435,6 @@ theorem StandingSetup.final_residue_contradiction_of_envelope
       hxOutside hyOutside hdisjoint
   exact setup.no_divisible_cycle hcycle
 
-/--
-Turn an isomorphism from an induced vertex set to the canonical
-one-subdivision of `K₄` into the oriented copy consumed by the internally
-proved subdivision-attachment lemma.
--/
-def subdivisionCopyOfInducedIso
-    {J : SimpleGraph W} (S : Finset W)
-    (e : J.induce (↑S : Set W) ≃g
-      oneSubdivisionK4) :
-    SimpleGraph.Copy oneSubdivisionK4 J where
-  toHom :=
-    (SimpleGraph.Embedding.induce
-      (G := J) (↑S : Set W)).toHom.comp
-        e.symm.toHom
-  injective' :=
-    (SimpleGraph.Embedding.induce
-      (G := J) (↑S : Set W)).injective.comp
-        e.symm.injective
-
-theorem range_subdivisionCopyOfInducedIso
-    {J : SimpleGraph W} (S : Finset W)
-    (e : J.induce (↑S : Set W) ≃g
-      oneSubdivisionK4) :
-    Set.range (subdivisionCopyOfInducedIso S e) =
-      (↑S : Set W) := by
-  ext w
-  constructor
-  · rintro ⟨i, rfl⟩
-    exact (e.symm i).2
-  · intro hw
-    let wS : (↑S : Set W) := ⟨w, hw⟩
-    refine ⟨e wS, ?_⟩
-    simp [subdivisionCopyOfInducedIso, wS]
-
 instance oneSubdivisionK4DecidableAdj :
     DecidableRel oneSubdivisionK4.Adj := by
   intro a b

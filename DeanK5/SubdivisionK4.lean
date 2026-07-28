@@ -387,6 +387,40 @@ theorem outside_vertex_cycle
 
 end SubdivisionK4
 
+/--
+Turn an isomorphism from an induced vertex set to the canonical
+one-subdivision of `K₄` into an oriented copy in the ambient graph.
+-/
+def subdivisionCopyOfInducedIso
+    {J : SimpleGraph V} (S : Finset V)
+    (e : J.induce (↑S : Set V) ≃g
+      oneSubdivisionK4) :
+    SimpleGraph.Copy oneSubdivisionK4 J where
+  toHom :=
+    (SimpleGraph.Embedding.induce
+      (G := J) (↑S : Set V)).toHom.comp
+        e.symm.toHom
+  injective' :=
+    (SimpleGraph.Embedding.induce
+      (G := J) (↑S : Set V)).injective.comp
+        e.symm.injective
+
+/-- The induced copy has exactly the prescribed ambient vertex set. -/
+theorem range_subdivisionCopyOfInducedIso
+    {J : SimpleGraph V} (S : Finset V)
+    (e : J.induce (↑S : Set V) ≃g
+      oneSubdivisionK4) :
+    Set.range (subdivisionCopyOfInducedIso S e) =
+      (↑S : Set V) := by
+  ext w
+  constructor
+  · rintro ⟨i, rfl⟩
+    exact (e.symm i).2
+  · intro hw
+    let wS : (↑S : Set V) := ⟨w, hw⟩
+    refine ⟨e wS, ?_⟩
+    simp [subdivisionCopyOfInducedIso, wS]
+
 namespace GHLM
 
 /--
@@ -405,6 +439,77 @@ theorem outside_vertex_on_subdivided_K4
     HasCycleLength G 5 ∨ HasCycleLength G 10 :=
   SubdivisionK4.outside_vertex_cycle
     G hgirth K v hv a b hab hva hvb
+
+/--
+If adjoining each outside vertex with two neighbors in `S` produces an
+induced one-subdivision of `K₄`, then at most one such outside vertex
+exists in a graph of girth at least six with no ten-cycle.
+
+This is the final, attachment-lemma step in GHLM Lemma 5.10, separated
+from the minimum-theta argument that supplies the subdivision hypothesis.
+-/
+theorem multiNeighborSet_subsingleton_of_induces
+    [Fintype V] [DecidableEq V]
+    (G : SimpleGraph V)
+    (hgirth : GirthAtLeast G 6)
+    (h10 : HasNoCycleLength G 10)
+    (S : Finset V)
+    (hsubdivision :
+      ∀ v : V, v ∉ S →
+        2 ≤
+          (G.neighborSet v ∩
+            (↑S : Set V)).ncard →
+        InducesOneSubdivisionK4 G (insert v S)) :
+    Set.Subsingleton
+      {v : V | v ∉ S ∧
+        2 ≤
+          (G.neighborSet v ∩
+            (↑S : Set V)).ncard} := by
+  intro v hv w hw
+  by_contra hvw
+  obtain ⟨e⟩ :=
+    hsubdivision v hv.1 hv.2
+  let K :=
+    subdivisionCopyOfInducedIso (insert v S) e
+  have hwv : w ≠ v := Ne.symm hvw
+  have hwOutside : w ∉ Set.range K := by
+    rw [range_subdivisionCopyOfInducedIso
+      (insert v S) e]
+    simp [hwv, hw.1]
+  obtain ⟨a, ha, b, hb, hab⟩ :=
+    (Set.one_lt_ncard
+      (s := G.neighborSet w ∩
+        (↑S : Set V))).1 hw.2
+  let aS : (↑(insert v S) : Set V) :=
+    ⟨a, by simp [ha.2]⟩
+  let bS : (↑(insert v S) : Set V) :=
+    ⟨b, by simp [hb.2]⟩
+  let ia : Fin 4 ⊕ K4Edge := e aS
+  let ib : Fin 4 ⊕ K4Edge := e bS
+  have hia : K ia = a := by
+    simp [K, ia, aS,
+      subdivisionCopyOfInducedIso]
+  have hib : K ib = b := by
+    simp [K, ib, bS,
+      subdivisionCopyOfInducedIso]
+  have hiab : ia ≠ ib := by
+    intro hij
+    exact hab (by
+      rw [← hia, ← hib, hij])
+  have hbad :=
+    outside_vertex_on_subdivided_K4
+      G
+      (fun C => (hgirth C).trans'
+        (by omega))
+      K w hwOutside ia ib hiab
+      (by simpa [hia] using ha.1)
+      (by simpa [hib] using hb.1)
+  rcases hbad with hfive | hten
+  · obtain ⟨C, hC⟩ := hfive
+    have hge := hgirth C
+    omega
+  · obtain ⟨C, hC⟩ := hten
+    exact (h10 C) hC
 
 end GHLM
 

@@ -4,7 +4,6 @@ import Mathlib.Combinatorics.SimpleGraph.Copy
 import Mathlib.Combinatorics.SimpleGraph.CycleGraph
 import Mathlib.Combinatorics.SimpleGraph.Girth
 import Mathlib.Combinatorics.SimpleGraph.Paths
-import Mathlib.Data.Rat.Defs
 import Mathlib.Tactic
 
 /-!
@@ -383,15 +382,6 @@ def IsKConnected [Fintype V]
 /-- Vertex 2-connectivity under the project's finite-graph convention. -/
 abbrev IsTwoConnected [Fintype V]
     (G : SimpleGraph V) : Prop := IsKConnected G 2
-
-/--
-An exact rational lower bound on vertex connectivity.  This formulation
-avoids rounding away BGLP's half-integral bound: `κ(G) ≥ q` means every
-integer `n < q` is a valid connectivity level.
--/
-def ConnectivityAtLeast [Fintype V]
-    (G : SimpleGraph V) (q : ℚ) : Prop :=
-  ∀ n : ℕ, (n : ℚ) < q → IsKConnected G (n + 1)
 
 /-- Every simple cycle has length at least `g`. -/
 def GirthAtLeast (G : SimpleGraph V) (g : ℕ) : Prop :=

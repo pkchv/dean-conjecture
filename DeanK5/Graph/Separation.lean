@@ -121,6 +121,33 @@ def IsVertexCut
   ∃ C₀ C₁ : (deleteVertices G S).ConnectedComponent, C₀ ≠ C₁
 
 /--
+On a nonempty surviving carrier, failure of connectedness produces two
+distinct connected components and hence a vertex cut witness.
+-/
+theorem isVertexCut_of_not_connected
+    [DecidableEq V]
+    (G : SimpleGraph V) (S : Finset V)
+    (hnonempty : Nonempty {v : V // v ∉ S})
+    (hnot : ¬(deleteVertices G S).Connected) :
+    IsVertexCut G S := by
+  letI : Nonempty {v : V // v ∉ S} := hnonempty
+  have hnpre :
+      ¬(deleteVertices G S).Preconnected := by
+    intro hpre
+    exact hnot {
+      preconnected := hpre
+      nonempty := hnonempty
+    }
+  simp only [SimpleGraph.Preconnected] at hnpre
+  push Not at hnpre
+  obtain ⟨u, v, huv⟩ := hnpre
+  refine ⟨(deleteVertices G S).connectedComponentMk u,
+    (deleteVertices G S).connectedComponentMk v, ?_⟩
+  intro hcomponents
+  exact huv
+    (SimpleGraph.ConnectedComponent.exact hcomponents)
+
+/--
 Deleting at most `r` vertices from a `(k+r)`-connected graph leaves a
 `k`-connected graph.
 -/
@@ -674,8 +701,38 @@ theorem reaches_boundary_of_walk_avoiding_vertex
   exact go z.2 hzwVal p hwavoid
 
 /--
+In a 2-connected graph, every component of the deletion of a 2-set has a
+neighbor at each separator vertex.
+-/
+theorem has_neighbor_at_each_vertex_of_two_separator
+    [Fintype V]
+    (hQ : ComponentRegion G S Q)
+    (hconn : IsKConnected G 2)
+    (hScard : S.card = 2)
+    {s : V} (hs : s ∈ S) :
+    ∃ q ∈ Q, G.Adj q s := by
+  obtain ⟨q, hqQ⟩ := hQ.nonempty
+  have hqS : q ∉ S := hQ.not_mem_separator hqQ
+  have hcard : (S.erase s).card < 2 := by
+    rw [Finset.card_erase_of_mem hs, hScard]
+    omega
+  have hdeleted := hconn.2 (S.erase s) hcard
+  have hqdel : q ∉ S.erase s := by
+    exact fun h => hqS (Finset.mem_of_mem_erase h)
+  have hsdel : s ∉ S.erase s := Finset.notMem_erase _ _
+  obtain ⟨p⟩ :=
+    hdeleted.preconnected ⟨q, hqdel⟩ ⟨s, hsdel⟩
+  let pG : G.Walk q s := p.map (Embedding.induce _).toHom
+  apply hQ.exists_adj_to_separator_of_walk hs hqQ pG
+  intro v hv
+  change v ∈ (p.map (Embedding.induce _).toHom).support at hv
+  rw [SimpleGraph.Walk.support_map] at hv
+  obtain ⟨w, hw, rfl⟩ := List.mem_map.mp hv
+  exact w.property
+
+/--
 In a 3-connected graph, every component of the deletion of a 3-set has a
-neighbour at each separator vertex.
+neighbor at each separator vertex.
 -/
 theorem has_neighbor_at_each_vertex_of_three_separator
     [Fintype V]
