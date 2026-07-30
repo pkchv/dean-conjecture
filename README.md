@@ -19,6 +19,65 @@ The theorem is verified in Lean 4. Independent expert review is welcome.
 - [View the Markdown source](paper/Dean_conjecture_k5.md)
 - [Download the TeX source](paper/Dean_conjecture_k5.tex)
 
+## Independent specification and verification
+
+The theorem was specified independently of its Lean implementation. Using
+[Oracle](https://github.com/steipete/oracle), GPT-5.6 Sol Pro received the
+paper, but not the Lean sources or an existing theorem signature, and was
+asked to:
+
+1. isolate the principal fixed-modulus-five theorem;
+2. make every hypothesis and conclusion explicit;
+3. translate that contract using only Mathlib primitives, then check the empty
+   carrier, finiteness, degree, cycle, length, and divisibility semantics.
+
+The resulting mathematical specification is:
+
+> **Theorem.** Every finite nonempty simple graph of minimum degree at least
+> five contains a simple cycle whose length is divisible by five.
+
+$$
+\forall\,G\text{ finite, nonempty, and simple},\qquad
+\delta(G)\ge 5
+\Longrightarrow
+\exists\,C\subseteq G\;
+\bigl(C\text{ is a simple cycle}\land 5\mid |E(C)|\bigr).
+$$
+
+The corresponding trusted input to
+[Comparator](https://github.com/leanprover/comparator) is
+[`DeanK5Challenge.lean`](DeanK5Challenge.lean):
+
+```lean
+import Mathlib.Combinatorics.SimpleGraph.Paths
+import Mathlib.Data.Set.Card
+
+namespace DeanK5.Comparator
+
+theorem dean_conjecture_k5
+    {V : Type*} [Finite V] [Nonempty V]
+    (G : SimpleGraph V)
+    (hmin : ∀ v : V, 5 ≤ (G.neighborSet v).ncard) :
+    ∃ (v : V) (C : G.Walk v v),
+      C.IsCycle ∧ 5 ∣ C.length := by
+  sorry
+
+end DeanK5.Comparator
+```
+
+This statement imports no project definitions. The correspondence is literal:
+`SimpleGraph V` encodes an undirected simple graph; `Finite` and `Nonempty`
+encode the carrier assumptions; `neighborSet.ncard` encodes degree;
+`Walk.IsCycle` encodes a simple cycle; `Walk.length` counts edges; and
+`5 ∣ C.length` is divisibility by five.
+
+[`DeanK5Solution.lean`](DeanK5Solution.lean) repeats the same declaration and
+derives it from the project's top-level theorem. Comparator builds the
+challenge and solution separately, compares their exported statements, checks
+the permitted axiom set, and replays the exported proof with both Lean and
+Nanoda. The `sorry` above is the specification placeholder expected by
+Comparator; the solution and the project proof contain no `sorry`.
+
 ## Formalization map
 
 The project proves the exact portions of the published results needed here.
@@ -59,6 +118,10 @@ The entries below are the main review points. The
 - [`FinalDeductionAudit.lean`](DeanK5/FinalDeductionAudit.lean): Focused
   axiom and proof-reachability checks.
 - [`AxiomAudit.lean`](DeanK5/AxiomAudit.lean): The exhaustive project audit.
+- [`DeanK5Challenge.lean`](DeanK5Challenge.lean): The final theorem stated
+  directly with Mathlib primitives for independent comparison.
+- [`DeanK5Solution.lean`](DeanK5Solution.lean): The proof-side bridge to that
+  statement.
 - [`references/`](references/): Published sources, checksums, and statement
   provenance.
 

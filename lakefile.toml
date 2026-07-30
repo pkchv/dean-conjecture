@@ -1,9 +1,15 @@
 name = "DeanConjectureK5"
 version = "0.1.0"
-defaultTargets = ["DeanK5"]
+defaultTargets = ["DeanK5", "DeanK5Solution"]
 
 [[lean_lib]]
 name = "DeanK5"
+
+[[lean_lib]]
+name = "DeanK5Challenge"
+
+[[lean_lib]]
+name = "DeanK5Solution"
 
 [[require]]
 name = "mathlib"

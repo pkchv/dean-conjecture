@@ -74,3 +74,6 @@ lake --rehash --wfail build DeanK5.AxiomCommands Batteries.Tactic.Lint
 lake env lean -DwarningAsError=true -E hasSorry DeanK5/FinalDeduction.lean
 lake env lean -DwarningAsError=true -E hasSorry DeanK5/FinalDeductionAudit.lean
 lake env lean -DwarningAsError=true -E hasSorry DeanK5/AxiomAudit.lean
+
+# Re-elaborate the proof-side adapter for the independent Comparator statement.
+lake env lean -DwarningAsError=true -E hasSorry DeanK5Solution.lean

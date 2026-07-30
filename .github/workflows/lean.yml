@@ -24,13 +24,172 @@ jobs:
 
     steps:
       - name: Check out the repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
 
       - name: Set up Lean and caches
-        uses: leanprover/lean-action@v1
+        uses: leanprover/lean-action@38fbc41a8c28c4cbaec22d7f7de508ec2e7c0dd9 # v1
         with:
           auto-config: false
           use-mathlib-cache: true
 
       - name: Verify the Lean formalization
         run: ./scripts/verify-lean.sh
+
+  comparator:
+    name: Compare and independently replay the final theorem
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+
+      - name: Set up Lean and the Mathlib cache
+        uses: leanprover/lean-action@38fbc41a8c28c4cbaec22d7f7de508ec2e7c0dd9 # v1
+        with:
+          auto-config: false
+          use-mathlib-cache: true
+          use-github-cache: false
+
+      - name: Check out Comparator
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          repository: leanprover/comparator
+          ref: 07bc4ea40f2266dcb861820a2ec1fa3244ed307f
+          path: .verification-tools/comparator
+          persist-credentials: false
+
+      - name: Check out landrun
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          repository: Zouuup/landrun
+          ref: 5ed4a3db3a4ad930d577215c6b9abaa19df7f99f
+          path: .verification-tools/landrun
+          persist-credentials: false
+
+      - name: Check out Nanoda
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          repository: ammkrn/nanoda_lib
+          ref: ddfac2bf5a7b56cb46e141494427ff3dd55963c7
+          path: .verification-tools/nanoda
+          persist-credentials: false
+
+      - name: Check out the official sandbox probe
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          repository: leanprover/lean-eval
+          ref: 074f4d5b81b1137926450746f1d77622878c9815
+          path: .verification-tools/lean-eval
+          persist-credentials: false
+
+      - name: Set up Go
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+        with:
+          go-version: 1.24.0
+          cache: false
+
+      - name: Build the pinned verification tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          tools="$GITHUB_WORKSPACE/.verification-tools"
+          mkdir -p "$tools/bin"
+          cp lean-toolchain "$tools/comparator/lean-toolchain"
+          cp lean-toolchain "$tools/lean-eval/lean-toolchain"
+          export_rev=$(
+            jq -r \
+              '.packages[] | select(.name == "lean4export") | .rev' \
+              "$tools/comparator/lake-manifest.json"
+          )
+          test "$export_rev" = \
+            4e7915201d3f9f04470d9eae002fa695f7cdc589
+
+          (
+            cd "$tools/comparator"
+            LEAN_TOOLCHAIN=leanprover/lean4:v4.32.1 \
+              lake build lean4export
+            cp "$GITHUB_WORKSPACE/lean-toolchain" \
+              .lake/packages/lean4export/lean-toolchain
+            LEAN_TOOLCHAIN=leanprover/lean4:v4.32.1 \
+              lake build comparator
+          )
+          (
+            cd "$tools/landrun"
+            go build -trimpath -o "$tools/bin/landrun" ./cmd/landrun
+          )
+          (
+            cd "$tools/nanoda"
+            cargo build --release --locked
+          )
+
+          {
+            echo "COMPARATOR_BIN=$tools/comparator/.lake/build/bin/comparator"
+            echo "COMPARATOR_LANDRUN=$tools/bin/landrun"
+            echo "COMPARATOR_LEAN4EXPORT=$tools/comparator/.lake/packages/lean4export/.lake/build/bin/lean4export"
+            echo "COMPARATOR_NANODA=$tools/nanoda/target/release/nanoda_bin"
+          } >> "$GITHUB_ENV"
+
+      - name: Prepare an unprivileged checking account
+        shell: bash
+        run: |
+          set -euo pipefail
+          if find .lake/build -path '*/lean/DeanK5*' -print -quit 2>/dev/null |
+             grep -q .
+          then
+            echo "Project modules were built before Comparator." >&2
+            exit 1
+          fi
+
+          sudo useradd --create-home --shell /bin/bash leancheck
+          workspace_parent=$(dirname "$GITHUB_WORKSPACE")
+          work_root=$(dirname "$workspace_parent")
+          runner_home=$(dirname "$work_root")
+          sudo setfacl -m "u:leancheck:--x" \
+            "$runner_home" "$work_root" "$workspace_parent"
+          sudo setfacl -m "u:leancheck:r-x" "$GITHUB_WORKSPACE"
+          sudo chown -R leancheck:leancheck .lake
+          sudo -u leancheck env HOME=/home/leancheck \
+            git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+          check_uid=$(id -u leancheck)
+          sudo loginctl enable-linger leancheck
+          sudo systemctl start "user@${check_uid}.service"
+          echo "COMPARATOR_CHECK_UID=$check_uid" >> "$GITHUB_ENV"
+
+      - name: Run Comparator with Lean and Nanoda
+        shell: bash
+        run: |
+          set -euo pipefail
+          runner_elan_home="${ELAN_HOME:-$HOME/.elan}"
+          tool_path="$(dirname "$COMPARATOR_BIN")"
+          tool_path="$tool_path:$(dirname "$COMPARATOR_LANDRUN")"
+          tool_path="$tool_path:$(dirname "$COMPARATOR_LEAN4EXPORT")"
+          tool_path="$tool_path:$(dirname "$COMPARATOR_NANODA"):$PATH"
+
+          sudo -u leancheck env \
+            HOME=/home/leancheck \
+            ELAN_HOME="$runner_elan_home" \
+            PATH="$tool_path" \
+            COMPARATOR_LANDRUN="$COMPARATOR_LANDRUN" \
+            COMPARATOR_LEAN4EXPORT="$COMPARATOR_LEAN4EXPORT" \
+            COMPARATOR_NANODA="$COMPARATOR_NANODA" \
+            python3 \
+              .verification-tools/lean-eval/scripts/sandbox_engaged_probe.py \
+              --require-tools
+
+          sudo -u leancheck env \
+            HOME=/home/leancheck \
+            ELAN_HOME="$runner_elan_home" \
+            XDG_RUNTIME_DIR="/run/user/$COMPARATOR_CHECK_UID" \
+            DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$COMPARATOR_CHECK_UID/bus" \
+            PATH="$tool_path" \
+            COMPARATOR_BIN="$COMPARATOR_BIN" \
+            COMPARATOR_LANDRUN="$COMPARATOR_LANDRUN" \
+            COMPARATOR_LEAN4EXPORT="$COMPARATOR_LEAN4EXPORT" \
+            COMPARATOR_NANODA="$COMPARATOR_NANODA" \
+            ./scripts/verify-comparator.sh

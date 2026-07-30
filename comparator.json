@@ -1,0 +1,7 @@
+{
+  "challenge_module": "DeanK5Challenge",
+  "solution_module": "DeanK5Solution",
+  "theorem_names": ["DeanK5.Comparator.dean_conjecture_k5"],
+  "permitted_axioms": ["propext", "Quot.sound", "Classical.choice"],
+  "enable_nanoda": true
+}
